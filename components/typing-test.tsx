@@ -204,7 +204,7 @@ export function TypingTest({
   const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
-  const [difficulty, setDifficulty] = useState<Difficulty | undefined>(undefined);
+  const [difficulty, setDifficulty] = useState<Difficulty | undefined>("easy");
 
   useEffect(() => {
     const storedMode = readStoredTestMode();
