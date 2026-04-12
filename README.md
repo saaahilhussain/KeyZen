@@ -1,3 +1,6 @@
+<img width="1440" height="1080" alt="image" src="https://github.com/user-attachments/assets/f44d3888-3b4e-45fd-9aa6-752ad1b47587" />
+
+
 # KeyZen
 
 **KeyZen** is a typing-test website: timed and word-count drills, quotes, and a zen mode, with detailed results (WPM, accuracy, consistency, charts). On large screens you can turn on a **virtual keyboard** that highlights keys as you type, plus **key sounds** and optional **haptics** (supported devices).
