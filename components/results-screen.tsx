@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { IconInfoCircle, IconRefresh, IconArrowRight } from "@tabler/icons-react";
 import {
@@ -21,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CornerBrackets } from "@/components/corner-brackets";
 
 export interface WpmSnapshot {
   second: number;
@@ -47,6 +48,29 @@ export interface ResultStats {
 interface ResultsScreenProps {
   stats: ResultStats;
   onRestart: () => void;
+}
+
+function ResultsBracketButton({
+  onClick,
+  label,
+  icon,
+}: {
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+}) {
+  return (
+    <CornerBrackets className="inline-flex">
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex items-center gap-2 px-4 py-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-0"
+      >
+        {icon}
+        {label}
+      </button>
+    </CornerBrackets>
+  );
 }
 
 const chartConfig: ChartConfig = {
@@ -195,22 +219,16 @@ export function ResultsScreen({ stats, onRestart }: ResultsScreenProps) {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-border pt-6 pb-2">
-          <button
-            type="button"
+          <ResultsBracketButton
             onClick={onRestart}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <IconArrowRight size={16} />
-            next test
-          </button>
-          <button
-            type="button"
+            label="next test"
+            icon={<IconArrowRight size={16} aria-hidden />}
+          />
+          <ResultsBracketButton
             onClick={onRestart}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <IconRefresh size={16} />
-            restart
-          </button>
+            label="restart"
+            icon={<IconRefresh size={16} aria-hidden />}
+          />
         </div>
       </motion.div>
     )
@@ -265,23 +283,16 @@ export function ResultsScreen({ stats, onRestart }: ResultsScreenProps) {
 
       {/* Actions */}
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pb-2">
-        <button
-          type="button"
+        <ResultsBracketButton
           onClick={onRestart}
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <IconArrowRight size={16} />
-          next test
-        </button>
-
-        <button
-          type="button"
+          label="next test"
+          icon={<IconArrowRight size={16} aria-hidden />}
+        />
+        <ResultsBracketButton
           onClick={onRestart}
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <IconRefresh size={16} />
-          restart
-        </button>
+          label="restart"
+          icon={<IconRefresh size={16} aria-hidden />}
+        />
         <CalculationFormulaPopover />
       </div>
     </motion.div>

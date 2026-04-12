@@ -40,6 +40,50 @@ function readStoredTimeOption(): TimeOption | undefined {
   return n as TimeOption;
 }
 
+const PUNCTUATION_STORAGE_KEY = "tc-punctuation";
+const NUMBERS_STORAGE_KEY = "tc-numbers";
+
+function readStoredBool(key: string): boolean | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = localStorage.getItem(key);
+  if (raw === "true") return true;
+  if (raw === "false") return false;
+  return undefined;
+}
+
+const TEST_MODE_STORAGE_KEY = "tc-test-mode";
+const WORD_OPTION_STORAGE_KEY = "tc-word-option";
+const QUOTE_LENGTH_STORAGE_KEY = "tc-quote-length";
+
+const VALID_TEST_MODES: readonly TestMode[] = ["time", "words", "quote", "zen"];
+const VALID_WORD_OPTIONS: readonly WordOption[] = [10, 25, 50, 100];
+const VALID_QUOTE_LENGTHS: readonly QuoteLength[] = ["short", "medium", "long"];
+
+function readStoredTestMode(): TestMode | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = localStorage.getItem(TEST_MODE_STORAGE_KEY);
+  if (raw === null) return undefined;
+  if (!(VALID_TEST_MODES as readonly string[]).includes(raw)) return undefined;
+  return raw as TestMode;
+}
+
+function readStoredWordOption(): WordOption | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = localStorage.getItem(WORD_OPTION_STORAGE_KEY);
+  if (raw === null) return undefined;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || !(VALID_WORD_OPTIONS as readonly number[]).includes(n)) return undefined;
+  return n as WordOption;
+}
+
+function readStoredQuoteLength(): QuoteLength | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = localStorage.getItem(QUOTE_LENGTH_STORAGE_KEY);
+  if (raw === null) return undefined;
+  if (!(VALID_QUOTE_LENGTHS as readonly string[]).includes(raw)) return undefined;
+  return raw as QuoteLength;
+}
+
 
 interface WordItemProps {
   word: string;
@@ -138,15 +182,25 @@ export function TypingTest({
   const [mode, setMode] = useState<TestMode>("time");
   const [timeOption, setTimeOption] = useState<TimeOption>(30);
   const [wordOption, setWordOption] = useState<WordOption>(25);
-
-  useEffect(() => {
-    const stored = readStoredTimeOption();
-    if (stored !== undefined) setTimeOption(stored);
-  }, []);
   const [quoteLength, setQuoteLength] = useState<QuoteLength>("medium");
   const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
+
+  useEffect(() => {
+    const storedMode = readStoredTestMode();
+    if (storedMode !== undefined) setMode(storedMode);
+    const storedTime = readStoredTimeOption();
+    if (storedTime !== undefined) setTimeOption(storedTime);
+    const storedWordOption = readStoredWordOption();
+    if (storedWordOption !== undefined) setWordOption(storedWordOption);
+    const storedQuoteLength = readStoredQuoteLength();
+    if (storedQuoteLength !== undefined) setQuoteLength(storedQuoteLength);
+    const storedPunctuation = readStoredBool(PUNCTUATION_STORAGE_KEY);
+    if (storedPunctuation !== undefined) setPunctuation(storedPunctuation);
+    const storedNumbers = readStoredBool(NUMBERS_STORAGE_KEY);
+    if (storedNumbers !== undefined) setNumbers(storedNumbers);
+  }, []);
 
   const [words, setWords] = useState<string[]>([]);
   const [typed, setTyped] = useState("");
@@ -526,7 +580,12 @@ export function TypingTest({
         <div className="flex flex-row flex-wrap items-center justify-center gap-2">
           {/* Punctuation toggle */}
           <button
-            onClick={() => setPunctuation(!punctuation)}
+            type="button"
+            onClick={() => {
+              const next = !punctuation;
+              setPunctuation(next);
+              localStorage.setItem(PUNCTUATION_STORAGE_KEY, String(next));
+            }}
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
               punctuation ? "text-primary" : "text-muted-foreground hover:text-foreground",
@@ -538,7 +597,12 @@ export function TypingTest({
 
           {/* Numbers toggle */}
           <button
-            onClick={() => setNumbers(!numbers)}
+            type="button"
+            onClick={() => {
+              const next = !numbers;
+              setNumbers(next);
+              localStorage.setItem(NUMBERS_STORAGE_KEY, String(next));
+            }}
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
               numbers ? "text-primary" : "text-muted-foreground hover:text-foreground",
@@ -552,7 +616,15 @@ export function TypingTest({
         <div className="hidden h-4 w-px bg-border sm:mx-1 sm:block" />
 
         {/* Mode tabs */}
-        <Tabs value={mode} onValueChange={(v) => setMode(v as TestMode)} className="flex items-center">
+        <Tabs
+          value={mode}
+          onValueChange={(v) => {
+            const next = v as TestMode;
+            setMode(next);
+            localStorage.setItem(TEST_MODE_STORAGE_KEY, next);
+          }}
+          className="flex items-center"
+        >
           <TabsList>
             {[
               { value: "time",  icon: IconClock,    label: "time"  },
@@ -574,7 +646,11 @@ export function TypingTest({
         {mode === "words" ? (
           <Tabs
             value={String(wordOption)}
-            onValueChange={(v) => setWordOption(Number(v) as WordOption)}
+            onValueChange={(v) => {
+              const next = Number(v) as WordOption;
+              setWordOption(next);
+              localStorage.setItem(WORD_OPTION_STORAGE_KEY, String(next));
+            }}
             className="flex items-center"
           >
             <TabsList>
@@ -586,7 +662,11 @@ export function TypingTest({
         ) : mode === "quote" ? (
           <Tabs
             value={quoteLength}
-            onValueChange={(v) => setQuoteLength(v as QuoteLength)}
+            onValueChange={(v) => {
+              const next = v as QuoteLength;
+              setQuoteLength(next);
+              localStorage.setItem(QUOTE_LENGTH_STORAGE_KEY, next);
+            }}
             className="flex items-center"
           >
             <TabsList>

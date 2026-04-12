@@ -16,6 +16,8 @@ export const CornerBrackets = forwardRef<
   React.ComponentProps<"div">
 >(function CornerBrackets({ children, className, ...props }, ref) {
   const [isHovered, setIsHovered] = useState(false)
+  const [isFocusWithin, setIsFocusWithin] = useState(false)
+  const showBrackets = isHovered || isFocusWithin
 
   return (
     <div
@@ -23,10 +25,12 @@ export const CornerBrackets = forwardRef<
       className={cn("relative", className)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setIsFocusWithin(true)}
+      onBlurCapture={() => setIsFocusWithin(false)}
       {...props}
     >
       <AnimatePresence>
-        {isHovered && (
+        {showBrackets && (
           <>
             <motion.span
               className="pointer-events-none absolute -inset-[3px] border border-dashed border-foreground/40"
