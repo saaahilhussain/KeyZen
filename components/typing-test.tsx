@@ -28,6 +28,18 @@ type TestMode = "time" | "words" | "quote" | "zen";
 type TimeOption = 15 | 30 | 60 | 120;
 type WordOption = 10 | 25 | 50 | 100;
 
+const TIME_OPTION_STORAGE_KEY = "tc-time-option";
+const VALID_TIME_OPTIONS: readonly TimeOption[] = [15, 30, 60, 120];
+
+function readStoredTimeOption(): TimeOption | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = localStorage.getItem(TIME_OPTION_STORAGE_KEY);
+  if (raw === null) return undefined;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || !VALID_TIME_OPTIONS.includes(n as TimeOption)) return undefined;
+  return n as TimeOption;
+}
+
 
 interface WordItemProps {
   word: string;
@@ -126,6 +138,11 @@ export function TypingTest({
   const [mode, setMode] = useState<TestMode>("time");
   const [timeOption, setTimeOption] = useState<TimeOption>(30);
   const [wordOption, setWordOption] = useState<WordOption>(25);
+
+  useEffect(() => {
+    const stored = readStoredTimeOption();
+    if (stored !== undefined) setTimeOption(stored);
+  }, []);
   const [quoteLength, setQuoteLength] = useState<QuoteLength>("medium");
   const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
   const [punctuation, setPunctuation] = useState(false);
@@ -581,7 +598,12 @@ export function TypingTest({
         ) : (
           <Tabs
             value={String(timeOption)}
-            onValueChange={(v) => { if (mode === "time") setTimeOption(Number(v) as TimeOption); }}
+            onValueChange={(v) => {
+              if (mode !== "time") return;
+              const next = Number(v) as TimeOption;
+              setTimeOption(next);
+              localStorage.setItem(TIME_OPTION_STORAGE_KEY, String(next));
+            }}
             className="flex items-center"
           >
             <TooltipProvider>
