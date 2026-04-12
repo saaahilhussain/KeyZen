@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, LayoutGroup } from "motion/react";
-import { generateWords } from "@/lib/words";
+import { generateWords, type Difficulty } from "@/lib/words";
 import { getQuote, type QuoteLength } from "@/lib/quotes";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +19,8 @@ import {
   IconRefresh,
   IconNumber,
   IconPointer,
+  IconFeather,
+  IconFlame,
 } from "@tabler/icons-react";
 import { ResultsScreen, type ResultStats, type WpmSnapshot } from "@/components/results-screen";
 import { useSettings } from "@/components/settings-context";
@@ -58,6 +60,17 @@ const QUOTE_LENGTH_STORAGE_KEY = "tc-quote-length";
 const VALID_TEST_MODES: readonly TestMode[] = ["time", "words", "quote", "zen"];
 const VALID_WORD_OPTIONS: readonly WordOption[] = [10, 25, 50, 100];
 const VALID_QUOTE_LENGTHS: readonly QuoteLength[] = ["short", "medium", "long"];
+
+const DIFFICULTY_STORAGE_KEY = "tc-difficulty";
+const VALID_DIFFICULTIES: readonly Difficulty[] = ["easy", "hard"];
+
+function readStoredDifficulty(): Difficulty | undefined {
+  if (typeof window === "undefined") return undefined;
+  const raw = localStorage.getItem(DIFFICULTY_STORAGE_KEY);
+  if (raw === null) return undefined;
+  if (!(VALID_DIFFICULTIES as readonly string[]).includes(raw)) return undefined;
+  return raw as Difficulty;
+}
 
 function readStoredTestMode(): TestMode | undefined {
   if (typeof window === "undefined") return undefined;
@@ -186,6 +199,7 @@ export function TypingTest({
   const [quoteAuthor, setQuoteAuthor] = useState<string | null>(null);
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
+  const [difficulty, setDifficulty] = useState<Difficulty | undefined>(undefined);
 
   useEffect(() => {
     const storedMode = readStoredTestMode();
@@ -200,6 +214,8 @@ export function TypingTest({
     if (storedPunctuation !== undefined) setPunctuation(storedPunctuation);
     const storedNumbers = readStoredBool(NUMBERS_STORAGE_KEY);
     if (storedNumbers !== undefined) setNumbers(storedNumbers);
+    const storedDifficulty = readStoredDifficulty();
+    if (storedDifficulty !== undefined) setDifficulty(storedDifficulty);
   }, []);
 
   const [words, setWords] = useState<string[]>([]);
@@ -240,6 +256,7 @@ export function TypingTest({
 
 
   const [isFocused, setIsFocused] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
 
   const [isActivelyTyping, setIsActivelyTyping] = useState(false);
@@ -264,14 +281,14 @@ export function TypingTest({
     return 100;
   }, [mode, wordOption]);
 
-  const resetTest = useCallback(() => {
+  const resetTestImmediate = useCallback(() => {
     setQuoteAuthor(null);
     if (mode === "quote") {
       const { words: newWords, author } = getQuote(quoteLength);
       setWords(newWords);
       setQuoteAuthor(author);
     } else {
-      setWords(generateWords(wordCount, { punctuation, numbers }));
+      setWords(generateWords(wordCount, { punctuation, numbers, difficulty }));
     }
     setTyped("");
     setWordIndex(0);
@@ -298,9 +315,33 @@ export function TypingTest({
     onFinished?.(false);
     onTypingActiveChange?.(false);
     inputRef.current?.focus();
-  }, [wordCount, mode, timeOption, quoteLength, punctuation, numbers, onFinished, onTypingActiveChange]);
+  }, [wordCount, mode, timeOption, quoteLength, punctuation, numbers, difficulty, onFinished, onTypingActiveChange]);
 
-  useEffect(() => { resetTest(); }, [resetTest]);
+  const resetAnimRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetTest = useCallback(() => {
+    // Prevent overlapping resets
+    if (resetAnimRef.current) clearTimeout(resetAnimRef.current);
+    // Phase 1: fade out
+    setResetting(true);
+    // Phase 2: swap words after fade-out completes, then fade in
+    resetAnimRef.current = setTimeout(() => {
+      resetTestImmediate();
+      setResetting(false);
+      resetAnimRef.current = null;
+    }, 150);
+  }, [resetTestImmediate]);
+
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) {
+      // No fade animation on initial mount
+      isFirstMount.current = false;
+      resetTestImmediate();
+    } else {
+      resetTest();
+    }
+  }, [resetTest, resetTestImmediate]);
 
 
   useEffect(() => {
@@ -525,8 +566,10 @@ export function TypingTest({
     onFocusChange?.(true);
   }, [onFocusChange]);
 
-  // Results screen
-  if (finished) {
+  // Freeze stats the moment the test finishes so they stay stable during reset animations.
+  const frozenStatsRef = useRef<ResultStats | null>(null);
+
+  if (finished && !frozenStatsRef.current) {
     const elapsed = startTime ? (Date.now() - startTime) / 1000 : elapsedSecondsRef.current;
     const elapsedMin = elapsed / 60 || 1 / 60;
     const finalWpm = Math.round(correctChars / 5 / elapsedMin);
@@ -541,7 +584,7 @@ export function TypingTest({
       consistency = Math.max(0, Math.round(100 - (stdDev / (mean || 1)) * 100));
     }
 
-    const stats: ResultStats = {
+    frozenStatsRef.current = {
       wpm: finalWpm,
       accuracy,
       raw: finalRaw,
@@ -555,8 +598,15 @@ export function TypingTest({
       modeDetail: mode === "time" ? String(timeOption) : mode === "words" ? String(wordOption) : mode === "quote" ? quoteLength : "",
       wpmHistory,
     };
+  }
 
-    return <ResultsScreen stats={stats} onRestart={resetTest} />;
+  if (!finished) {
+    frozenStatsRef.current = null;
+  }
+
+  // Results screen
+  if (finished && frozenStatsRef.current) {
+    return <ResultsScreen stats={frozenStatsRef.current} onRestart={resetTest} />;
   }
 
   // Controls are visible when not yet started, or when mouse moved recently
@@ -610,6 +660,42 @@ export function TypingTest({
           >
             <IconNumber size={14} />
             numbers
+          </button>
+
+          <div className="hidden h-4 w-px bg-border sm:block" />
+
+          {/* Difficulty toggles */}
+          <button
+            type="button"
+            onClick={() => {
+              const next = difficulty === "easy" ? undefined : "easy" as Difficulty;
+              setDifficulty(next);
+              if (next) localStorage.setItem(DIFFICULTY_STORAGE_KEY, next);
+              else localStorage.removeItem(DIFFICULTY_STORAGE_KEY);
+            }}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              difficulty === "easy" ? "text-primary" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <IconFeather size={14} />
+            easy
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const next = difficulty === "hard" ? undefined : "hard" as Difficulty;
+              setDifficulty(next);
+              if (next) localStorage.setItem(DIFFICULTY_STORAGE_KEY, next);
+              else localStorage.removeItem(DIFFICULTY_STORAGE_KEY);
+            }}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              difficulty === "hard" ? "text-primary" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <IconFlame size={14} />
+            hard
           </button>
         </div>
 
@@ -714,7 +800,11 @@ export function TypingTest({
       {/* ── Words display ── */}
       <div className="relative w-full">
         {/* Timer / progress — always reserves space */}
-        <div className="mb-3 flex min-h-8 items-center gap-3">
+        <motion.div
+          className="mb-3 flex min-h-8 items-center gap-3"
+          animate={{ opacity: resetting ? 0 : 1 }}
+          transition={{ duration: 0.15 }}
+        >
           {mode === "time" && (
             <span
               className={cn(
@@ -740,7 +830,7 @@ export function TypingTest({
               {wpm} <span className="text-xs opacity-60">wpm</span>
             </span>
           )}
-        </div>
+        </motion.div>
 
         <div
           ref={wordsContainerRef}
@@ -774,8 +864,15 @@ export function TypingTest({
           <LayoutGroup id="words">
             <motion.div
               className="flex flex-wrap gap-x-2.5 gap-y-1"
-              animate={{ y: -rowOffset, opacity: isFocused ? 1 : 0.15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+              animate={{
+                y: -rowOffset,
+                opacity: resetting ? 0 : isFocused ? 1 : 0.15,
+                filter: resetting ? "blur(4px)" : "blur(0px)",
+              }}
+              transition={resetting
+                ? { duration: 0.15, ease: "easeOut" }
+                : { type: "spring", stiffness: 300, damping: 30, mass: 0.8 }
+              }
             >
               {words.map((word, wIdx) => {
                 const isActive = wIdx === wordIndex;
