@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, LayoutGroup } from "motion/react";
+import { AnimatePresence, motion, LayoutGroup } from "motion/react";
 import { generateWords } from "@/lib/words";
 import { getQuote, type QuoteLength } from "@/lib/quotes";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ import {
   IconMountain,
   IconRefresh,
   IconNumber,
+  IconPointer,
 } from "@tabler/icons-react";
 import { ResultsScreen, type ResultStats, type WpmSnapshot } from "@/components/results-screen";
 import { useSettings } from "@/components/settings-context";
@@ -113,6 +114,7 @@ interface TypingTestProps {
   onKeyHighlight?: (key: string | null) => void;
   onFinished?: (finished: boolean) => void;
   onTypingActiveChange?: (active: boolean) => void;
+  onFocusChange?: (focused: boolean) => void;
   /** When true, do not steal focus back to the typing input (settings / font popover need focus). */
   pauseTypingInputRefocus?: boolean;
 }
@@ -121,6 +123,7 @@ export function TypingTest({
   onKeyHighlight,
   onFinished,
   onTypingActiveChange,
+  onFocusChange,
   pauseTypingInputRefocus = false,
 }: TypingTestProps) {
   const { realtimeWpm } = useSettings();
@@ -170,6 +173,9 @@ export function TypingTest({
   // Focus-mode: controls toolbar hides while typing, restores on mouse move
   const [showControls, setShowControls] = useState(true);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Whether the hidden input currently has focus (drives the focus overlay)
+  const [isFocused, setIsFocused] = useState(true);
 
   // Cursor blink pauses while actively typing, resumes after 1 s idle
   const [isActivelyTyping, setIsActivelyTyping] = useState(false);
@@ -305,6 +311,9 @@ export function TypingTest({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Ignore any shortcut with a modifier key (Cmd+L, Ctrl+W, Alt+…, etc.)
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
       if (e.key === "Tab") {
         e.preventDefault();
         tabPressedRef.current = true;
@@ -440,23 +449,17 @@ export function TypingTest({
     inputRef.current?.focus();
   };
 
-  useEffect(() => {
-    if (finished) return;
-    const onGlobalKeyDown = () => {
-      if (pauseRefocusRef.current) return;
-      if (document.activeElement !== inputRef.current) inputRef.current?.focus();
-    };
-    document.addEventListener("keydown", onGlobalKeyDown, true);
-    return () => document.removeEventListener("keydown", onGlobalKeyDown, true);
-  }, [finished]);
-
+  // Show the focus overlay when the input loses focus (unless paused for settings/popovers)
   const handleInputBlur = useCallback(() => {
-    if (!finished) {
-      setTimeout(() => {
-        if (!finished && !pauseRefocusRef.current) inputRef.current?.focus();
-      }, 100);
-    }
-  }, [finished]);
+    if (pauseRefocusRef.current) return;
+    setIsFocused(false);
+    onFocusChange?.(false);
+  }, [onFocusChange]);
+
+  const handleInputFocus = useCallback(() => {
+    setIsFocused(true);
+    onFocusChange?.(true);
+  }, [onFocusChange]);
 
   // Results screen
   if (finished) {
@@ -658,6 +661,7 @@ export function TypingTest({
             className="absolute opacity-0"
             onKeyDown={handleKeyDown}
             onBlur={handleInputBlur}
+            onFocus={handleInputFocus}
             value={typed}
             onChange={() => {}}
             autoFocus
@@ -675,7 +679,7 @@ export function TypingTest({
           <LayoutGroup id="words">
             <motion.div
               className="flex flex-wrap gap-x-2.5 gap-y-1"
-              animate={{ y: -rowOffset }}
+              animate={{ y: -rowOffset, opacity: isFocused ? 1 : 0.15 }}
               transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
             >
               {words.map((word, wIdx) => {
@@ -700,6 +704,26 @@ export function TypingTest({
               })}
             </motion.div>
           </LayoutGroup>
+
+          {/* Focus overlay — shown when the input has lost focus */}
+          <AnimatePresence>
+            {!isFocused && (
+              <motion.div
+                key="focus-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center"
+                onClick={() => inputRef.current?.focus()}
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <IconPointer size={16} />
+                  Click here or press any key to focus
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ import { useSettings } from "@/components/settings-context"
 export default function Page() {
   const { settingsOpen, setTypingActive, homeLogoHandlerRef } = useAppChrome()
   const [isFinished, setIsFinished] = useState(false)
+  const [typingFocused, setTypingFocused] = useState(true)
   const [restartKey, setRestartKey] = useState(0)
   const { showKeyboard, soundEnabled } = useSettings()
 
@@ -51,6 +52,7 @@ export default function Page() {
           onKeyHighlight={handleKeyHighlight}
           onFinished={setIsFinished}
           onTypingActiveChange={handleTypingActiveChange}
+          onFocusChange={setTypingFocused}
           pauseTypingInputRefocus={settingsOpen}
         />
       </main>
@@ -70,6 +72,7 @@ export default function Page() {
               enableHaptics
               enableSound={soundEnabled}
               forceActive={soundEnabled && !showKeyboard}
+              physicalKeysEnabled={typingFocused}
             />
           </div>
         </footer>

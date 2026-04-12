@@ -60,6 +60,8 @@ export interface KeyboardProps {
   onKeyEvent?: (event: KeyboardInteractionEvent) => void;
   /** Keep key-event listeners active even when the keyboard is not intersecting the viewport */
   forceActive?: boolean;
+  /** When false, physical key presses are ignored (use when the typing area is not focused) */
+  physicalKeysEnabled?: boolean;
 }
 
 export function Keyboard({
@@ -70,6 +72,7 @@ export function Keyboard({
   soundUrl = "/sounds/sound.ogg",
   onKeyEvent,
   forceActive = false,
+  physicalKeysEnabled = true,
 }: KeyboardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +85,7 @@ export function Keyboard({
       soundUrl={soundUrl}
       onKeyEvent={onKeyEvent}
       forceActive={forceActive}
+      physicalKeysEnabled={physicalKeysEnabled}
     >
       <div ref={containerRef} className={cn("inline-block", className)}>
         <KeyboardLayout />
@@ -137,6 +141,7 @@ interface KeyboardProviderProps {
   soundUrl: string;
   onKeyEvent?: (event: KeyboardInteractionEvent) => void;
   forceActive?: boolean;
+  physicalKeysEnabled?: boolean;
 }
 
 function KeyboardProvider({
@@ -148,6 +153,7 @@ function KeyboardProvider({
   soundUrl,
   onKeyEvent,
   forceActive = false,
+  physicalKeysEnabled = true,
 }: KeyboardProviderProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
@@ -362,6 +368,9 @@ function KeyboardProvider({
     if (!isVisible && !forceActive) {
       return;
     }
+    if (!physicalKeysEnabled) {
+      return;
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (PHYSICAL_MODIFIER_CODES.has(event.code)) {
@@ -400,7 +409,7 @@ function KeyboardProvider({
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isVisible, forceActive, pressKey, releaseKey]);
+  }, [isVisible, forceActive, physicalKeysEnabled, pressKey, releaseKey]);
 
   return (
     <KeyboardContext.Provider
