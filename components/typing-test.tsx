@@ -604,17 +604,51 @@ export function TypingTest({
     frozenStatsRef.current = null;
   }
 
-  // Results screen
-  if (finished && frozenStatsRef.current) {
-    return <ResultsScreen stats={frozenStatsRef.current} onRestart={resetTest} />;
-  }
-
   // Controls are visible when not yet started, or when mouse moved recently
   const controlsVisible = !started || showControls;
+  const showResults = finished && frozenStatsRef.current;
+
+  // Fade state for results ↔ typing transitions
+  const [screenFade, setScreenFade] = useState(1);
+  const screenFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleResultsRestart = useCallback(() => {
+    // Phase 1: fade out results
+    setScreenFade(0);
+    if (screenFadeRef.current) clearTimeout(screenFadeRef.current);
+    screenFadeRef.current = setTimeout(() => {
+      // Phase 2: reset test (switches to typing view), then fade in
+      resetTestImmediate();
+      requestAnimationFrame(() => setScreenFade(1));
+      screenFadeRef.current = null;
+    }, 150);
+  }, [resetTestImmediate]);
+
+  // Also fade when test finishes (typing → results)
+  const prevFinishedRef = useRef(false);
+  useEffect(() => {
+    if (finished && !prevFinishedRef.current) {
+      setScreenFade(0);
+      requestAnimationFrame(() => setScreenFade(1));
+    }
+    prevFinishedRef.current = finished;
+  }, [finished]);
+
+  if (showResults) {
+    return (
+      <div
+        className="w-full transition-all duration-150 ease-out"
+        style={{ opacity: screenFade, filter: screenFade < 1 ? "blur(4px)" : "none" }}
+      >
+        <ResultsScreen stats={frozenStatsRef.current!} onRestart={handleResultsRestart} />
+      </div>
+    );
+  }
 
   return (
     <div
-      className="flex w-full max-w-4xl flex-col items-center gap-3"
+      className="flex w-full max-w-4xl flex-col items-center gap-3 transition-all duration-150 ease-out"
+      style={{ opacity: screenFade, filter: screenFade < 1 ? "blur(4px)" : "none" }}
       onClick={handleFocus}
       onMouseMove={handleMouseMove}
     >
