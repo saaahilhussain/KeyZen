@@ -9,9 +9,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
 import {
   ChartContainer,

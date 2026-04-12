@@ -69,7 +69,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             transition={{ type: "spring", stiffness: 340, damping: 34 }}
             className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-border bg-background shadow-2xl"
           >
-            {/* Header */}
+     
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Settings
@@ -84,13 +84,13 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
             <div className="flex-1 overflow-y-auto px-4 py-5 space-y-7">
 
-              {/* Theme */}
+
               <section className="flex items-center justify-between">
                 <SectionLabel>Theme</SectionLabel>
                 <NextThemeSwitcher />
               </section>
 
-              {/* Accent color — draggable rectangle swatches */}
+    
               <section>
                 <SectionLabel>Accent</SectionLabel>
                 <div
@@ -119,7 +119,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 </div>
               </section>
 
-              {/* Keyboard + Sound toggles — keyboard only visible on lg+, so disable on mobile */}
+         
               <section className="flex flex-col gap-3">
                 <ToggleRow
                   label="Show keyboard"
@@ -140,7 +140,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 />
               </section>
 
-              {/* Font — grouped list (cmdk, no search) */}
+
               <section>
                 <SectionLabel>Font</SectionLabel>
                 <Popover open={fontPickerOpen} onOpenChange={setFontPickerOpen}>

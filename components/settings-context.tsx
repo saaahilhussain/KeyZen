@@ -170,7 +170,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("tc-accent", accent);
   }, [accent]);
 
-  // Apply font
+
   useEffect(() => {
     const option = FONT_OPTIONS.find((f) => f.id === font);
     if (!option) return;

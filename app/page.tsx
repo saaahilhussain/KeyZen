@@ -76,8 +76,6 @@ export default function Page() {
           />
         </main>
 
-        {/* Bottom half: keyboard — desktop only */}
-        {/* Always mounted so audio context stays alive; visibility toggled via CSS only */}
         {!isFinished && (
           <footer className={cn(
             "hidden items-center justify-center border-t border-border lg:flex",
