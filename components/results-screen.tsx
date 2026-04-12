@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { IconRefresh, IconArrowRight } from "@tabler/icons-react";
+import { IconInfoCircle, IconRefresh, IconArrowRight } from "@tabler/icons-react";
 import {
   LineChart,
   Line,
@@ -16,6 +16,11 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export interface WpmSnapshot {
   second: number;
@@ -184,7 +189,7 @@ export function ResultsScreen({ stats, onRestart }: ResultsScreenProps) {
           {wpmHistory.length > 1 ? (
             <WpmChart history={wpmHistory} />
           ) : (
-            <div className="flex h-full items-center justify-center text-xs text-muted-foreground/30">
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground/50">
               not enough data
             </div>
           )}
@@ -202,13 +207,9 @@ export function ResultsScreen({ stats, onRestart }: ResultsScreenProps) {
         <StatBox label="time" value={`${elapsedSeconds}s`} />
       </div>
 
-      {/* Formula */}
-      <p className="text-center text-[11px] text-muted-foreground/30">
-        wpm = (correct chars ÷ 5) ÷ minutes &nbsp;·&nbsp; raw = (all chars ÷ 5) ÷ minutes &nbsp;·&nbsp; consistency = 100 − (σ/μ × 100)
-      </p>
-
       {/* Actions */}
-      <div className="flex items-center justify-center gap-4 pb-2">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pb-2">
+      <CalculationFormulaPopover />
         <button
           onClick={onRestart}
           className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground"
@@ -216,6 +217,7 @@ export function ResultsScreen({ stats, onRestart }: ResultsScreenProps) {
           <IconArrowRight size={16} />
           next test
         </button>
+
         <button
           onClick={onRestart}
           className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground"
@@ -225,6 +227,65 @@ export function ResultsScreen({ stats, onRestart }: ResultsScreenProps) {
         </button>
       </div>
     </motion.div>
+  );
+}
+
+function CalculationFormulaPopover() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-2 rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <IconInfoCircle size={16} stroke={1.5} aria-hidden />
+          calculation formula
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        className="max-h-[min(70vh,28rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto p-4"
+      >
+          <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            how it&apos;s calculated
+          </p>
+          <dl className="space-y-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-5">
+              <dt className="shrink-0 text-xs font-semibold text-primary sm:w-28">
+                wpm
+              </dt>
+              <dd className="min-w-0 font-mono text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
+                (correct chars ÷ 5) ÷ minutes
+              </dd>
+            </div>
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-5">
+              <dt className="shrink-0 text-xs font-semibold text-primary sm:w-28">
+                raw
+              </dt>
+              <dd className="min-w-0 font-mono text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
+                (all typed chars ÷ 5) ÷ minutes
+              </dd>
+            </div>
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-5">
+              <dt className="shrink-0 text-xs font-semibold text-primary sm:w-28">
+                consistency
+              </dt>
+              <dd className="min-w-0">
+                <p className="font-mono text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
+                  100 − (σ ÷ μ × 100)
+                </p>
+                <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+                  σ and μ use your WPM at each second of the test: σ is
+                  standard deviation, μ is the mean. Higher consistency means
+                  steadier pacing.
+                </p>
+              </dd>
+            </div>
+          </dl>
+      </PopoverContent>
+    </Popover>
   );
 }
 

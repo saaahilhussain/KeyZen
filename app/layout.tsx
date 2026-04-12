@@ -3,9 +3,10 @@ import { Doto, Geist_Mono, Space_Grotesk } from "next/font/google"
 import type { Metadata } from "next"
 
 import "./globals.css"
+import { AppChrome } from "@/components/app-chrome"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SettingsProvider } from "@/components/settings-context"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const spaceGrotesk = Space_Grotesk({subsets:['latin'],variable:'--font-sans'})
 
@@ -92,7 +93,9 @@ export default function RootLayout({
           />
         </noscript>
         <ThemeProvider>
-          <SettingsProvider>{children}</SettingsProvider>
+          <SettingsProvider>
+            <AppChrome>{children}</AppChrome>
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

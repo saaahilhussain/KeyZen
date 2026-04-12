@@ -1,0 +1,179 @@
+"use client"
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { motion } from "motion/react"
+import { IconInfoCircle, IconSettings } from "@tabler/icons-react"
+import { GithubLogo } from "@phosphor-icons/react"
+
+import { CornerBrackets } from "@/components/corner-brackets"
+import { SettingsPanel } from "@/components/settings-panel"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+interface AppChromeContextValue {
+  settingsOpen: boolean
+  setSettingsOpen: (open: boolean) => void
+  typingActive: boolean
+  setTypingActive: (active: boolean) => void
+  homeLogoHandlerRef: React.MutableRefObject<(() => void) | null>
+}
+
+const AppChromeContext = createContext<AppChromeContextValue | null>(null)
+
+export function useAppChrome() {
+  const ctx = useContext(AppChromeContext)
+  if (!ctx)
+    throw new Error("useAppChrome must be used within AppChrome")
+  return ctx
+}
+
+export function AppChrome({ children }: { children: ReactNode }) {
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [typingActive, setTypingActive] = useState(false)
+  const homeLogoHandlerRef = useRef<(() => void) | null>(null)
+
+  const value = useMemo(
+    () => ({
+      settingsOpen,
+      setSettingsOpen,
+      typingActive,
+      setTypingActive,
+      homeLogoHandlerRef,
+    }),
+    [settingsOpen, typingActive],
+  )
+
+  return (
+    <AppChromeContext.Provider value={value}>
+      <div className="flex min-h-dvh w-full flex-col bg-background">
+        <SiteHeader />
+        {children}
+      </div>
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </AppChromeContext.Provider>
+  )
+}
+
+function SiteHeader() {
+  const pathname = usePathname()
+  const router = useRouter()
+  const { setSettingsOpen, typingActive, setTypingActive, homeLogoHandlerRef } =
+    useAppChrome()
+
+  const isHome = pathname === "/"
+  const dimHeader = isHome && typingActive
+
+  const [headerVisible, setHeaderVisible] = useState(true)
+  const headerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!isHome) setTypingActive(false)
+  }, [isHome, setTypingActive])
+
+  useEffect(() => {
+    if (!isHome) {
+      setHeaderVisible(true)
+      return
+    }
+    if (!typingActive) setHeaderVisible(true)
+    else setHeaderVisible(false)
+  }, [isHome, typingActive])
+
+  const handleHeaderMouseMove = useCallback(() => {
+    if (!isHome || !typingActive) return
+    setHeaderVisible(true)
+    if (headerTimerRef.current) clearTimeout(headerTimerRef.current)
+    headerTimerRef.current = setTimeout(() => setHeaderVisible(false), 2500)
+  }, [isHome, typingActive])
+
+  useEffect(() => {
+    return () => {
+      if (headerTimerRef.current) clearTimeout(headerTimerRef.current)
+    }
+  }, [])
+
+  function handleLogoClick() {
+    if (isHome && homeLogoHandlerRef.current) {
+      homeLogoHandlerRef.current()
+      return
+    }
+    router.push("/")
+  }
+
+  const iconButtonClass =
+    "rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+
+  return (
+    <motion.header
+      animate={{ opacity: dimHeader ? (headerVisible ? 1 : 0.1) : 1 }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
+      onMouseMove={handleHeaderMouseMove}
+      className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3"
+    >
+      <div className="flex items-center gap-3">
+        {isHome ? (
+          <button
+            type="button"
+            onClick={handleLogoClick}
+            className="cursor-pointer font-(family-name:--font-doto) text-4xl font-bold text-primary"
+          >
+            KeyZen
+          </button>
+        ) : (
+          <Link
+            href="/"
+            className="font-(family-name:--font-doto) text-4xl font-bold text-primary"
+          >
+            KeyZen
+          </Link>
+        )}
+        <div className="flex items-center gap-0.5">
+          <Link
+            href="/about"
+            prefetch
+            className={cn(
+              iconButtonClass,
+              pathname === "/about" && "text-foreground",
+            )}
+            aria-current={pathname === "/about" ? "page" : undefined}
+            aria-label="About KeyZen"
+          >
+            <IconInfoCircle size={16} stroke={1.5} aria-hidden />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className={cn(iconButtonClass, "cursor-pointer")}
+            aria-label="Settings"
+          >
+            <IconSettings size={16} />
+          </button>
+        </div>
+      </div>
+      <CornerBrackets>
+        <Button variant="noborderradius" asChild>
+          <a
+            href="https://github.com/shivabhattacharjee/KeyZen"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2"
+          >
+            <GithubLogo />
+            Open Source
+          </a>
+        </Button>
+      </CornerBrackets>
+    </motion.header>
+  )
+}

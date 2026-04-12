@@ -506,33 +506,35 @@ export function TypingTest({
         animate={{ opacity: controlsVisible ? 1 : 0 }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
         className={cn(
-          "flex flex-col items-center gap-1 sm:flex-row sm:items-center",
+          "flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-1",
           !controlsVisible && "pointer-events-none select-none",
         )}
       >
-        {/* Punctuation toggle */}
-        <button
-          onClick={() => setPunctuation(!punctuation)}
-          className={cn(
-            "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-            punctuation ? "text-primary" : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          <IconAt size={14} />
-          punctuation
-        </button>
+        <div className="flex flex-row flex-wrap items-center justify-center gap-2">
+          {/* Punctuation toggle */}
+          <button
+            onClick={() => setPunctuation(!punctuation)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              punctuation ? "text-primary" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <IconAt size={14} />
+            punctuation
+          </button>
 
-        {/* Numbers toggle */}
-        <button
-          onClick={() => setNumbers(!numbers)}
-          className={cn(
-            "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-            numbers ? "text-primary" : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          <IconNumber size={14} />
-          numbers
-        </button>
+          {/* Numbers toggle */}
+          <button
+            onClick={() => setNumbers(!numbers)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              numbers ? "text-primary" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <IconNumber size={14} />
+            numbers
+          </button>
+        </div>
 
         <div className="hidden h-4 w-px bg-border sm:mx-1 sm:block" />
 
@@ -614,7 +616,7 @@ export function TypingTest({
       {/* ── Words display ── */}
       <div className="relative w-full">
         {/* Timer / progress — always reserves space */}
-        <div className="mb-3 flex h-8 items-center gap-3">
+        <div className="mb-3 flex min-h-8 items-center gap-3">
           {mode === "time" && (
             <span
               className={cn(
@@ -625,8 +627,13 @@ export function TypingTest({
               {timeLeft}
             </span>
           )}
-          {mode === "words" && started && (
-            <span className="font-mono text-sm text-muted-foreground">
+          {mode === "words" && (
+            <span
+              className={cn(
+                "font-mono text-2xl font-bold tabular-nums text-primary transition-opacity duration-200",
+                started ? "opacity-100" : "opacity-0",
+              )}
+            >
               {wordIndex}/{wordOption}
             </span>
           )}
