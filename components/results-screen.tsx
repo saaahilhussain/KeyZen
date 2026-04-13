@@ -318,7 +318,7 @@ export function ResultsScreen({ stats, onRestart, onNext }: ResultsScreenProps) 
         />
         <StatBox label="consistency" value={`${consistency}%`} />
         <StatBox label="time" value={`${elapsedSeconds}s`} />
-        <StatBox label="corrections" value={correctedErrors} />
+        <StatBox label="fixes" value={correctedErrors} hint="backspaces on wrong chars" />
       </div>
 
       {/* Actions */}
@@ -478,7 +478,7 @@ function StatBig({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function StatBox({ label, value }: { label: string; value: string | number }) {
+function StatBox({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -490,6 +490,7 @@ function StatBox({ label, value }: { label: string; value: string | number }) {
       >
         {value}
       </motion.span>
+      {hint && <span className="text-[10px] text-muted-foreground opacity-40">{hint}</span>}
     </div>
   );
 }
