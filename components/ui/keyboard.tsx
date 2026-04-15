@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from "@/lib/utils";
+import { getKeyboardLayout, QWERTY_LAYOUT, type KeyboardLayout } from "@/lib/keyboard-layouts";
 import {
   IconArrowNarrowLeft,
   IconBrightnessDown,
@@ -28,6 +29,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -62,6 +64,8 @@ export interface KeyboardProps {
   forceActive?: boolean;
   /** When false, physical key presses are ignored (use when the typing area is not focused) */
   physicalKeysEnabled?: boolean;
+  /** Language code to determine key labels (e.g. "english", "french", "russian") */
+  language?: string;
 }
 
 export function Keyboard({
@@ -73,8 +77,10 @@ export function Keyboard({
   onKeyEvent,
   forceActive = false,
   physicalKeysEnabled = true,
+  language = "english",
 }: KeyboardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const layout = useMemo(() => getKeyboardLayout(language), [language]);
 
   return (
     <KeyboardProvider
@@ -86,9 +92,10 @@ export function Keyboard({
       onKeyEvent={onKeyEvent}
       forceActive={forceActive}
       physicalKeysEnabled={physicalKeysEnabled}
+      layout={layout}
     >
       <div ref={containerRef} className={cn("inline-block", className)}>
-        <KeyboardLayout />
+        <KeyboardKeys />
       </div>
     </KeyboardProvider>
   );
@@ -102,6 +109,7 @@ export default Keyboard;
 
 interface KeyboardContextType {
   themeName: KeyboardThemeName;
+  layout: KeyboardLayout;
   pressedKeys: Set<string>;
   lastPressedKey: string | null;
   triggerPointerHaptic: () => void;
@@ -142,6 +150,7 @@ interface KeyboardProviderProps {
   onKeyEvent?: (event: KeyboardInteractionEvent) => void;
   forceActive?: boolean;
   physicalKeysEnabled?: boolean;
+  layout: KeyboardLayout;
 }
 
 function KeyboardProvider({
@@ -154,6 +163,7 @@ function KeyboardProvider({
   onKeyEvent,
   forceActive = false,
   physicalKeysEnabled = true,
+  layout,
 }: KeyboardProviderProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
@@ -415,6 +425,7 @@ function KeyboardProvider({
     <KeyboardContext.Provider
       value={{
         themeName: theme,
+        layout,
         pressedKeys,
         lastPressedKey,
         triggerPointerHaptic,
@@ -432,7 +443,14 @@ function KeyboardProvider({
 // UI rendering
 // -----------------------------------------------------------------------------
 
-function KeyboardLayout() {
+function KeyboardKeys() {
+  const { layout } = useKeyboardContext();
+
+  /** Helper: resolve label for a key from the current layout, falling back to QWERTY. */
+  function label(keyCode: string): [string, string?] | undefined {
+    return layout[keyCode] ?? QWERTY_LAYOUT[keyCode];
+  }
+
   return (
     <div>
       <div className="w-fit rounded-[16px] border-2 border-black bg-black/70 p-3 h-fit dark:border-white/20 dark:bg-white/20">
@@ -506,61 +524,22 @@ function KeyboardLayout() {
             </Row>
 
             <Row>
-              <Key keyCode={KEYCODE.Backquote}>
-                <span>{"~"}</span>
-                <span>{"`"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Backquote} labels={label("Backquote")} />
 
-              <Key keyCode={KEYCODE.Digit1}>
-                <span>{"!"}</span>
-                <span>{"1"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit2}>
-                <span>{"@"}</span>
-                <span>{"2"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit3}>
-                <span>{"#"}</span>
-                <span>{"3"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit4}>
-                <span>{"$"}</span>
-                <span>{"4"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Digit1} labels={label("Digit1")} />
+              <DualKey keyCode={KEYCODE.Digit2} labels={label("Digit2")} />
+              <DualKey keyCode={KEYCODE.Digit3} labels={label("Digit3")} />
+              <DualKey keyCode={KEYCODE.Digit4} labels={label("Digit4")} />
 
-              <Key keyCode={KEYCODE.Digit5}>
-                <span>{"%"}</span>
-                <span>{"5"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit6}>
-                <span>{"^"}</span>
-                <span>{"6"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit7}>
-                <span>{"&"}</span>
-                <span>{"7"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit8}>
-                <span>{"*"}</span>
-                <span>{"8"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Digit9}>
-                <span>{"("}</span>
-                <span>{"9"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Digit5} labels={label("Digit5")} />
+              <DualKey keyCode={KEYCODE.Digit6} labels={label("Digit6")} />
+              <DualKey keyCode={KEYCODE.Digit7} labels={label("Digit7")} />
+              <DualKey keyCode={KEYCODE.Digit8} labels={label("Digit8")} />
+              <DualKey keyCode={KEYCODE.Digit9} labels={label("Digit9")} />
 
-              <Key keyCode={KEYCODE.Digit0}>
-                <span>{")"}</span>
-                <span>{"0"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Minus}>
-                <span>{"_"}</span>
-                <span>{"-"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Equal}>
-                <span>{"+"}</span>
-                <span>{"="}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Digit0} labels={label("Digit0")} />
+              <DualKey keyCode={KEYCODE.Minus} labels={label("Minus")} />
+              <DualKey keyCode={KEYCODE.Equal} labels={label("Equal")} />
 
               <Key keyCode={KEYCODE.Backspace} width={100}>
                 <IconArrowNarrowLeft className="size-[12px]" />
@@ -575,31 +554,22 @@ function KeyboardLayout() {
                 {"tab"}
               </Key>
 
-              <Key keyCode={KEYCODE.KeyQ}>{"Q"}</Key>
-              <Key keyCode={KEYCODE.KeyW}>{"W"}</Key>
-              <Key keyCode={KEYCODE.KeyE}>{"E"}</Key>
-              <Key keyCode={KEYCODE.KeyR}>{"R"}</Key>
+              <DualKey keyCode={KEYCODE.KeyQ} labels={label("KeyQ")} />
+              <DualKey keyCode={KEYCODE.KeyW} labels={label("KeyW")} />
+              <DualKey keyCode={KEYCODE.KeyE} labels={label("KeyE")} />
+              <DualKey keyCode={KEYCODE.KeyR} labels={label("KeyR")} />
 
-              <Key keyCode={KEYCODE.KeyT}>{"T"}</Key>
-              <Key keyCode={KEYCODE.KeyY}>{"Y"}</Key>
-              <Key keyCode={KEYCODE.KeyU}>{"U"}</Key>
-              <Key keyCode={KEYCODE.KeyI}>{"I"}</Key>
-              <Key keyCode={KEYCODE.KeyO}>{"O"}</Key>
-              <Key keyCode={KEYCODE.KeyP}>{"P"}</Key>
+              <DualKey keyCode={KEYCODE.KeyT} labels={label("KeyT")} />
+              <DualKey keyCode={KEYCODE.KeyY} labels={label("KeyY")} />
+              <DualKey keyCode={KEYCODE.KeyU} labels={label("KeyU")} />
+              <DualKey keyCode={KEYCODE.KeyI} labels={label("KeyI")} />
+              <DualKey keyCode={KEYCODE.KeyO} labels={label("KeyO")} />
+              <DualKey keyCode={KEYCODE.KeyP} labels={label("KeyP")} />
 
-              <Key keyCode={KEYCODE.BracketLeft}>
-                <span>{"{"}</span>
-                <span>{"["}</span>
-              </Key>
-              <Key keyCode={KEYCODE.BracketRight}>
-                <span>{"}"}</span>
-                <span>{"]"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.BracketLeft} labels={label("BracketLeft")} />
+              <DualKey keyCode={KEYCODE.BracketRight} labels={label("BracketRight")} />
 
-              <Key keyCode={KEYCODE.Backslash} width={75}>
-                <span>{"|"}</span>
-                <span>{"\\"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Backslash} labels={label("Backslash")} width={75} />
               <Key keyCode={KEYCODE.PageDown}>
                 {"pgdn"}
               </Key>
@@ -610,25 +580,19 @@ function KeyboardLayout() {
                 {"caps lock"}
               </Key>
 
-              <Key keyCode={KEYCODE.KeyA}>{"A"}</Key>
-              <Key keyCode={KEYCODE.KeyS}>{"S"}</Key>
-              <Key keyCode={KEYCODE.KeyD}>{"D"}</Key>
-              <Key keyCode={KEYCODE.KeyF}>{"F"}</Key>
+              <DualKey keyCode={KEYCODE.KeyA} labels={label("KeyA")} />
+              <DualKey keyCode={KEYCODE.KeyS} labels={label("KeyS")} />
+              <DualKey keyCode={KEYCODE.KeyD} labels={label("KeyD")} />
+              <DualKey keyCode={KEYCODE.KeyF} labels={label("KeyF")} />
 
-              <Key keyCode={KEYCODE.KeyG}>{"G"}</Key>
-              <Key keyCode={KEYCODE.KeyH}>{"H"}</Key>
-              <Key keyCode={KEYCODE.KeyJ}>{"J"}</Key>
-              <Key keyCode={KEYCODE.KeyK}>{"K"}</Key>
-              <Key keyCode={KEYCODE.KeyL}>{"L"}</Key>
+              <DualKey keyCode={KEYCODE.KeyG} labels={label("KeyG")} />
+              <DualKey keyCode={KEYCODE.KeyH} labels={label("KeyH")} />
+              <DualKey keyCode={KEYCODE.KeyJ} labels={label("KeyJ")} />
+              <DualKey keyCode={KEYCODE.KeyK} labels={label("KeyK")} />
+              <DualKey keyCode={KEYCODE.KeyL} labels={label("KeyL")} />
 
-              <Key keyCode={KEYCODE.Semicolon}>
-                <span>{":"}</span>
-                <span>{";"}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Quote}>
-                <span>{"\""}</span>
-                <span>{"'"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Semicolon} labels={label("Semicolon")} />
+              <DualKey keyCode={KEYCODE.Quote} labels={label("Quote")} />
 
               <Key keyCode={KEYCODE.Enter} width={100}>
                 {"return"}
@@ -643,27 +607,18 @@ function KeyboardLayout() {
                 {"shift"}
               </Key>
 
-              <Key keyCode={KEYCODE.KeyZ}>{"Z"}</Key>
-              <Key keyCode={KEYCODE.KeyX}>{"X"}</Key>
-              <Key keyCode={KEYCODE.KeyC}>{"C"}</Key>
-              <Key keyCode={KEYCODE.KeyV}>{"V"}</Key>
+              <DualKey keyCode={KEYCODE.KeyZ} labels={label("KeyZ")} />
+              <DualKey keyCode={KEYCODE.KeyX} labels={label("KeyX")} />
+              <DualKey keyCode={KEYCODE.KeyC} labels={label("KeyC")} />
+              <DualKey keyCode={KEYCODE.KeyV} labels={label("KeyV")} />
 
-              <Key keyCode={KEYCODE.KeyB}>{"B"}</Key>
-              <Key keyCode={KEYCODE.KeyN}>{"N"}</Key>
-              <Key keyCode={KEYCODE.KeyM}>{"M"}</Key>
+              <DualKey keyCode={KEYCODE.KeyB} labels={label("KeyB")} />
+              <DualKey keyCode={KEYCODE.KeyN} labels={label("KeyN")} />
+              <DualKey keyCode={KEYCODE.KeyM} labels={label("KeyM")} />
 
-              <Key keyCode={KEYCODE.Comma}>
-                <span>{"<"}</span>
-                <span>{","}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Period}>
-                <span>{">"}</span>
-                <span>{"."}</span>
-              </Key>
-              <Key keyCode={KEYCODE.Slash}>
-                <span>{"?"}</span>
-                <span>{"/"}</span>
-              </Key>
+              <DualKey keyCode={KEYCODE.Comma} labels={label("Comma")} />
+              <DualKey keyCode={KEYCODE.Period} labels={label("Period")} />
+              <DualKey keyCode={KEYCODE.Slash} labels={label("Slash")} />
 
               <Key keyCode={KEYCODE.ShiftRight} width={77}>
                 {"shift"}
@@ -717,6 +672,27 @@ function KeyboardLayout() {
 
 function Row({ children }: { children: ReactNode }) {
   return <div className="flex">{children}</div>;
+}
+
+/** Renders a key with one or two labels (shift label on top, normal on bottom). */
+function DualKey({ keyCode, labels, width }: { keyCode: KEYCODE; labels?: [string, string?]; width?: number }) {
+  if (!labels) {
+    return <Key keyCode={keyCode} width={width} />;
+  }
+  const [normal, shift] = labels;
+  if (shift) {
+    return (
+      <Key keyCode={keyCode} width={width}>
+        <span>{shift}</span>
+        <span>{normal}</span>
+      </Key>
+    );
+  }
+  return (
+    <Key keyCode={keyCode} width={width}>
+      {normal}
+    </Key>
+  );
 }
 
 interface KeyProps {

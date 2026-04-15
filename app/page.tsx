@@ -13,7 +13,7 @@ export default function Page() {
   const [isFinished, setIsFinished] = useState(false)
   const [typingFocused, setTypingFocused] = useState(true)
   const [restartKey, setRestartKey] = useState(0)
-  const { showKeyboard, soundEnabled } = useSettings()
+  const { showKeyboard, soundEnabled, language } = useSettings()
 
   useMountEffect(() => {
     homeLogoHandlerRef.current = () => {
@@ -74,6 +74,7 @@ export default function Page() {
               enableSound={soundEnabled}
               forceActive={soundEnabled && !showKeyboard}
               physicalKeysEnabled={typingFocused}
+              language={language}
             />
           </div>
         </footer>
