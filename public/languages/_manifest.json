@@ -148,5 +148,20 @@
     "name": "Bengali",
     "code": "bangla",
     "has1k": false
+  },
+  {
+    "name": "Japanese (Hiragana)",
+    "code": "japanese_hiragana",
+    "has1k": false
+  },
+  {
+    "name": "Japanese (Katakana)",
+    "code": "japanese_katakana",
+    "has1k": false
+  },
+  {
+    "name": "Japanese (Romaji)",
+    "code": "japanese_romaji",
+    "has1k": true
   }
 ]

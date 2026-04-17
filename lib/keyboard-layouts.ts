@@ -932,10 +932,118 @@ const ROMANIAN_LAYOUT: KeyboardLayout = {
 };
 
 // ---------------------------------------------------------------------------
+// Japanese – JIS Kana (Hiragana)
+// ---------------------------------------------------------------------------
+
+const JAPANESE_HIRAGANA_LAYOUT: KeyboardLayout = {
+  Backquote: ["ろ"],
+  Digit1: ["ぬ"],
+  Digit2: ["ふ"],
+  Digit3: ["あ", "ぁ"],
+  Digit4: ["う", "ぅ"],
+  Digit5: ["え", "ぇ"],
+  Digit6: ["お", "ぉ"],
+  Digit7: ["や", "ゃ"],
+  Digit8: ["ゆ", "ゅ"],
+  Digit9: ["よ", "ょ"],
+  Digit0: ["わ", "を"],
+  Minus: ["ほ"],
+  Equal: ["へ"],
+  KeyQ: ["た"],
+  KeyW: ["て"],
+  KeyE: ["い", "ぃ"],
+  KeyR: ["す"],
+  KeyT: ["か"],
+  KeyY: ["ん"],
+  KeyU: ["な"],
+  KeyI: ["に"],
+  KeyO: ["ら"],
+  KeyP: ["せ"],
+  BracketLeft: ["゛", "゜"],
+  BracketRight: ["む"],
+  Backslash: ["ー", "｜"],
+  KeyA: ["ち"],
+  KeyS: ["と"],
+  KeyD: ["し"],
+  KeyF: ["は"],
+  KeyG: ["き"],
+  KeyH: ["く"],
+  KeyJ: ["ま"],
+  KeyK: ["の"],
+  KeyL: ["り"],
+  Semicolon: ["れ"],
+  Quote: ["け"],
+  KeyZ: ["つ", "っ"],
+  KeyX: ["さ"],
+  KeyC: ["そ"],
+  KeyV: ["ひ"],
+  KeyB: ["こ"],
+  KeyN: ["み"],
+  KeyM: ["も"],
+  Comma: ["ね", "、"],
+  Period: ["る", "。"],
+  Slash: ["め", "・"],
+};
+
+// ---------------------------------------------------------------------------
+// Japanese – JIS Kana (Katakana)
+// ---------------------------------------------------------------------------
+
+const JAPANESE_KATAKANA_LAYOUT: KeyboardLayout = {
+  Backquote: ["ロ"],
+  Digit1: ["ヌ"],
+  Digit2: ["フ"],
+  Digit3: ["ア", "ァ"],
+  Digit4: ["ウ", "ゥ"],
+  Digit5: ["エ", "ェ"],
+  Digit6: ["オ", "ォ"],
+  Digit7: ["ヤ", "ャ"],
+  Digit8: ["ユ", "ュ"],
+  Digit9: ["ヨ", "ョ"],
+  Digit0: ["ワ", "ヲ"],
+  Minus: ["ホ"],
+  Equal: ["ヘ"],
+  KeyQ: ["タ"],
+  KeyW: ["テ"],
+  KeyE: ["イ", "ィ"],
+  KeyR: ["ス"],
+  KeyT: ["カ"],
+  KeyY: ["ン"],
+  KeyU: ["ナ"],
+  KeyI: ["ニ"],
+  KeyO: ["ラ"],
+  KeyP: ["セ"],
+  BracketLeft: ["゛", "゜"],
+  BracketRight: ["ム"],
+  Backslash: ["ー", "｜"],
+  KeyA: ["チ"],
+  KeyS: ["ト"],
+  KeyD: ["シ"],
+  KeyF: ["ハ"],
+  KeyG: ["キ"],
+  KeyH: ["ク"],
+  KeyJ: ["マ"],
+  KeyK: ["ノ"],
+  KeyL: ["リ"],
+  Semicolon: ["レ"],
+  Quote: ["ケ"],
+  KeyZ: ["ツ", "ッ"],
+  KeyX: ["サ"],
+  KeyC: ["ソ"],
+  KeyV: ["ヒ"],
+  KeyB: ["コ"],
+  KeyN: ["ミ"],
+  KeyM: ["モ"],
+  Comma: ["ネ", "、"],
+  Period: ["ル", "。"],
+  Slash: ["メ", "・"],
+};
+
+// ---------------------------------------------------------------------------
 // Languages that use standard QWERTY with no changes
 // ---------------------------------------------------------------------------
 
-// Dutch, Polish, Indonesian, Vietnamese, Malay all use QWERTY
+// Dutch, Polish, Indonesian, Vietnamese, Malay, Japanese Romaji all use QWERTY
 // (Vietnamese uses tone marks composed separately, not on the base layout)
 
 // ---------------------------------------------------------------------------
@@ -968,6 +1076,9 @@ const LANGUAGE_LAYOUTS: Record<string, KeyboardLayout> = {
   finnish: FINNISH_LAYOUT,
   danish: DANISH_LAYOUT,
   romanian: ROMANIAN_LAYOUT,
+  japanese_hiragana: JAPANESE_HIRAGANA_LAYOUT,
+  japanese_katakana: JAPANESE_KATAKANA_LAYOUT,
+  japanese_romaji: QWERTY_LAYOUT,
   // QWERTY-based, no overrides needed:
   dutch: QWERTY_LAYOUT,
   polish: QWERTY_LAYOUT,
