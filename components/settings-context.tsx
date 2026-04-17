@@ -159,6 +159,8 @@ interface SettingsContextType {
   setFaahMode: (v: boolean) => void;
   ghostMode: boolean;
   setGhostMode: (v: boolean) => void;
+  shakeMode: boolean;
+  setShakeMode: (v: boolean) => void;
   language: string;
   setLanguage: (l: string) => void;
   showDiacritics: boolean;
@@ -197,6 +199,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [realtimeWpm, setRealtimeWpmState] = useState(false);
   const [faahMode, setFaahModeState] = useState(false);
   const [ghostMode, setGhostModeState] = useState(false);
+  const [shakeMode, setShakeModeState] = useState(false);
   const [language, setLanguageState] = useState("english");
   const [showDiacritics, setShowDiacriticsState] = useState(true);
 
@@ -210,6 +213,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const savedRealtimeWpm = localStorage.getItem("tc-realtime-wpm");
     const savedFaahMode = localStorage.getItem("tc-faah-mode");
     const savedGhostMode = localStorage.getItem("tc-ghost-mode");
+    const savedShakeMode = localStorage.getItem("tc-shake-mode");
 
     const initialAccent = savedAccent ?? "teal";
     setAccentState(initialAccent);
@@ -224,6 +228,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (savedRealtimeWpm !== null) setRealtimeWpmState(savedRealtimeWpm === "true");
     if (savedFaahMode !== null) setFaahModeState(savedFaahMode === "true");
     if (savedGhostMode !== null) setGhostModeState(savedGhostMode === "true");
+    if (savedShakeMode !== null) setShakeModeState(savedShakeMode === "true");
 
     const savedLanguage = localStorage.getItem("tc-language");
     if (savedLanguage) setLanguageState(savedLanguage);
@@ -271,6 +276,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("tc-ghost-mode", String(v));
   };
 
+  const setShakeMode = (v: boolean) => {
+    setShakeModeState(v);
+    localStorage.setItem("tc-shake-mode", String(v));
+  };
+
   const setLanguage = (l: string) => {
     setLanguageState(l);
     localStorage.setItem("tc-language", l);
@@ -294,6 +304,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         realtimeWpm, setRealtimeWpm,
         faahMode, setFaahMode,
         ghostMode, setGhostMode,
+        shakeMode, setShakeMode,
         language, setLanguage,
         showDiacritics, setShowDiacritics,
       }}

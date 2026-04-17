@@ -1,75 +1,115 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, useState } from "react";
-import { IconX } from "@tabler/icons-react";
-import { CaretDownIcon } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "motion/react";
-import { useSettings, ACCENT_COLORS, FONT_OPTIONS } from "@/components/settings-context";
-import { NextThemeSwitcher } from "@/components/kibo-ui/theme-switcher";
+import { useEffect, useRef, useState } from "react"
+import { IconX } from "@tabler/icons-react"
+import { CaretDownIcon } from "@phosphor-icons/react"
+import { motion, AnimatePresence } from "motion/react"
+import {
+  useSettings,
+  ACCENT_COLORS,
+  FONT_OPTIONS,
+} from "@/components/settings-context"
+import { NextThemeSwitcher } from "@/components/kibo-ui/theme-switcher"
 import {
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import type { Language } from "@/lib/languages";
-import { getLanguageManifest, isRTLLanguage } from "@/lib/languages";
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
+import type { Language } from "@/lib/languages"
+import { getLanguageManifest, isRTLLanguage } from "@/lib/languages"
 
 interface SettingsPanelProps {
-  open: boolean;
-  onClose: () => void;
+  open: boolean
+  onClose: () => void
 }
 
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
-  const { accent, setAccent, font, setFont, showKeyboard, setShowKeyboard, soundEnabled, setSoundEnabled, realtimeWpm, setRealtimeWpm, faahMode, setFaahMode, ghostMode, setGhostMode, language, setLanguage, showDiacritics, setShowDiacritics } = useSettings();
-  const isRTL = isRTLLanguage(language);
-  const [fontPickerOpen, setFontPickerOpen] = useState(false);
-  const [langPickerOpen, setLangPickerOpen] = useState(false);
-  const [languages, setLanguages] = useState<Language[]>([]);
-  const [cacheInfo, setCacheInfo] = useState<string | null>(null);
+  const {
+    accent,
+    setAccent,
+    font,
+    setFont,
+    showKeyboard,
+    setShowKeyboard,
+    soundEnabled,
+    setSoundEnabled,
+    realtimeWpm,
+    setRealtimeWpm,
+    faahMode,
+    setFaahMode,
+    ghostMode,
+    setGhostMode,
+    shakeMode,
+    setShakeMode,
+    language,
+    setLanguage,
+    showDiacritics,
+    setShowDiacritics,
+  } = useSettings()
+  const isRTL = isRTLLanguage(language)
+  const [fontPickerOpen, setFontPickerOpen] = useState(false)
+  const [langPickerOpen, setLangPickerOpen] = useState(false)
+  const [languages, setLanguages] = useState<Language[]>([])
+  const [cacheInfo, setCacheInfo] = useState<string | null>(null)
 
   const clearSWCache = async () => {
-    if (!("caches" in window)) { setCacheInfo("Cache API not available"); return; }
-    const keys = await caches.keys();
-    await Promise.all(keys.map((k) => caches.delete(k)));
-    setCacheInfo(`Cleared ${keys.length} cache${keys.length !== 1 ? "s" : ""}`);
-    setTimeout(() => setCacheInfo(null), 3000);
-  };
+    if (!("caches" in window)) {
+      setCacheInfo("Cache API not available")
+      return
+    }
+    const keys = await caches.keys()
+    await Promise.all(keys.map((k) => caches.delete(k)))
+    setCacheInfo(`Cleared ${keys.length} cache${keys.length !== 1 ? "s" : ""}`)
+    setTimeout(() => setCacheInfo(null), 3000)
+  }
 
-
-  const selectedFont = FONT_OPTIONS.find((f) => f.id === font);
-  const selectedLang = languages.find((l) => l.code === language);
+  const selectedFont = FONT_OPTIONS.find((f) => f.id === font)
+  const selectedLang = languages.find((l) => l.code === language)
 
   useEffect(() => {
     if (open && languages.length === 0) {
-      getLanguageManifest().then(setLanguages);
+      getLanguageManifest().then(setLanguages)
     }
-  }, [open, languages.length]);
+  }, [open, languages.length])
 
   // Drag-to-scroll for color swatches
-  const swatchRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef({ dragging: false, startX: 0, scrollLeft: 0 });
+  const swatchRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef({ dragging: false, startX: 0, scrollLeft: 0 })
 
   const onMouseDown = (e: React.MouseEvent) => {
-    const el = swatchRef.current;
-    if (!el) return;
-    dragState.current = { dragging: true, startX: e.pageX - el.offsetLeft, scrollLeft: el.scrollLeft };
-    el.style.cursor = "grabbing";
-  };
+    const el = swatchRef.current
+    if (!el) return
+    dragState.current = {
+      dragging: true,
+      startX: e.pageX - el.offsetLeft,
+      scrollLeft: el.scrollLeft,
+    }
+    el.style.cursor = "grabbing"
+  }
   const onMouseMove = (e: React.MouseEvent) => {
-    if (!dragState.current.dragging || !swatchRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - swatchRef.current.offsetLeft;
-    const walk = x - dragState.current.startX;
-    swatchRef.current.scrollLeft = dragState.current.scrollLeft - walk;
-  };
+    if (!dragState.current.dragging || !swatchRef.current) return
+    e.preventDefault()
+    const x = e.pageX - swatchRef.current.offsetLeft
+    const walk = x - dragState.current.startX
+    swatchRef.current.scrollLeft = dragState.current.scrollLeft - walk
+  }
   const onMouseUp = () => {
-    dragState.current.dragging = false;
-    if (swatchRef.current) swatchRef.current.style.cursor = "grab";
-  };
+    dragState.current.dragging = false
+    if (swatchRef.current) swatchRef.current.style.cursor = "grab"
+  }
 
   return (
     <AnimatePresence>
@@ -91,11 +131,10 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 340, damping: 34 }}
-            className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-border bg-background shadow-2xl"
+            className="fixed top-0 right-0 z-50 flex h-full w-72 flex-col border-l border-border bg-background shadow-2xl"
           >
-     
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 Settings
               </span>
               <button
@@ -106,15 +145,12 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-5 space-y-7">
-
-
+            <div className="flex-1 space-y-7 overflow-y-auto px-4 py-5">
               <section className="flex items-center justify-between">
                 <SectionLabel>Theme</SectionLabel>
                 <NextThemeSwitcher />
               </section>
 
-    
               <section>
                 <SectionLabel>Accent</SectionLabel>
                 <div
@@ -136,7 +172,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                               "h-7 w-12 shrink-0 rounded-sm transition-all duration-150",
                               accent === c.id
                                 ? "opacity-100"
-                                : "opacity-40 hover:opacity-80",
+                                : "opacity-40 hover:opacity-80"
                             )}
                             style={{ background: c.swatch }}
                           />
@@ -148,7 +184,6 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 </div>
               </section>
 
-         
               <section className="flex flex-col gap-3">
                 <ToggleRow
                   label="Show keyboard"
@@ -168,6 +203,11 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                   onToggle={() => setRealtimeWpm(!realtimeWpm)}
                 />
                 <ToggleRow
+                  label="Shake mode"
+                  enabled={shakeMode}
+                  onToggle={() => setShakeMode(!shakeMode)}
+                />
+                <ToggleRow
                   label="Faah mode"
                   enabled={faahMode}
                   onToggle={() => setFaahMode(!faahMode)}
@@ -177,6 +217,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                   enabled={ghostMode}
                   onToggle={() => setGhostMode(!ghostMode)}
                 />
+
                 {isRTL && (
                   <ToggleRow
                     label="Diacritics"
@@ -186,7 +227,6 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 )}
               </section>
 
-
               <section>
                 <SectionLabel>Font</SectionLabel>
                 <Popover open={fontPickerOpen} onOpenChange={setFontPickerOpen}>
@@ -195,8 +235,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                       type="button"
                       aria-expanded={fontPickerOpen}
                       className={cn(
-                        "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs outline-none transition-colors",
-                        "hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                        "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs transition-colors outline-none",
+                        "hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       )}
                     >
                       <span
@@ -205,7 +245,10 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                       >
                         {selectedFont?.label ?? font}
                       </span>
-                      <CaretDownIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
+                      <CaretDownIcon
+                        className="size-4 shrink-0 text-muted-foreground"
+                        weight="bold"
+                      />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -218,34 +261,42 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                     <Command shouldFilter={false}>
                       <CommandList>
                         <CommandGroup heading="Mono">
-                          {FONT_OPTIONS.filter((f) => f.tag === "mono").map((f) => (
-                            <CommandItem
-                              key={f.id}
-                              value={f.id}
-                              data-checked={font === f.id ? true : undefined}
-                              onSelect={() => {
-                                setFont(f.id);
-                                setFontPickerOpen(false);
-                              }}
-                            >
-                              <span style={{ fontFamily: f.cssFamily }}>{f.label}</span>
-                            </CommandItem>
-                          ))}
+                          {FONT_OPTIONS.filter((f) => f.tag === "mono").map(
+                            (f) => (
+                              <CommandItem
+                                key={f.id}
+                                value={f.id}
+                                data-checked={font === f.id ? true : undefined}
+                                onSelect={() => {
+                                  setFont(f.id)
+                                  setFontPickerOpen(false)
+                                }}
+                              >
+                                <span style={{ fontFamily: f.cssFamily }}>
+                                  {f.label}
+                                </span>
+                              </CommandItem>
+                            )
+                          )}
                         </CommandGroup>
                         <CommandGroup heading="Display">
-                          {FONT_OPTIONS.filter((f) => f.tag === "display").map((f) => (
-                            <CommandItem
-                              key={f.id}
-                              value={f.id}
-                              data-checked={font === f.id ? true : undefined}
-                              onSelect={() => {
-                                setFont(f.id);
-                                setFontPickerOpen(false);
-                              }}
-                            >
-                              <span style={{ fontFamily: f.cssFamily }}>{f.label}</span>
-                            </CommandItem>
-                          ))}
+                          {FONT_OPTIONS.filter((f) => f.tag === "display").map(
+                            (f) => (
+                              <CommandItem
+                                key={f.id}
+                                value={f.id}
+                                data-checked={font === f.id ? true : undefined}
+                                onSelect={() => {
+                                  setFont(f.id)
+                                  setFontPickerOpen(false)
+                                }}
+                              >
+                                <span style={{ fontFamily: f.cssFamily }}>
+                                  {f.label}
+                                </span>
+                              </CommandItem>
+                            )
+                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -261,14 +312,17 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                       type="button"
                       aria-expanded={langPickerOpen}
                       className={cn(
-                        "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs outline-none transition-colors",
-                        "hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                        "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs transition-colors outline-none",
+                        "hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       )}
                     >
                       <span className="min-w-0 truncate">
                         {selectedLang?.name ?? language}
                       </span>
-                      <CaretDownIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
+                      <CaretDownIcon
+                        className="size-4 shrink-0 text-muted-foreground"
+                        weight="bold"
+                      />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
@@ -286,10 +340,12 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                               key={l.code}
                               value={l.code}
                               keywords={[l.name]}
-                              data-checked={language === l.code ? true : undefined}
+                              data-checked={
+                                language === l.code ? true : undefined
+                              }
                               onSelect={() => {
-                                setLanguage(l.code);
-                                setLangPickerOpen(false);
+                                setLanguage(l.code)
+                                setLangPickerOpen(false)
                               }}
                             >
                               {l.name}
@@ -307,7 +363,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 <div className="mt-3 flex flex-col gap-2">
                   <button
                     onClick={() => void clearSWCache()}
-                    className="flex h-8 w-full items-center justify-center rounded-lg border border-input bg-background px-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                    className="flex h-8 w-full items-center justify-center rounded-lg border border-input bg-background px-3 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground"
                   >
                     Clear SW Cache
                   </button>
@@ -325,21 +381,20 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                   </AnimatePresence>
                 </div>
               </section>
-
             </div>
           </motion.aside>
         </>
       )}
     </AnimatePresence>
-  );
+  )
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+    <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
       {children}
     </p>
-  );
+  )
 }
 
 function ToggleRow({
@@ -348,24 +403,26 @@ function ToggleRow({
   onToggle,
   disabledReason,
 }: {
-  label: string;
-  enabled: boolean;
-  onToggle: () => void;
-  disabledReason?: string;
+  label: string
+  enabled: boolean
+  onToggle: () => void
+  disabledReason?: string
 }) {
   // Use JS window check to detect mobile (lg = 1024px)
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
-  const isDisabled = !!disabledReason && isMobile;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024
+  const isDisabled = !!disabledReason && isMobile
 
   return (
     <div
       className="flex items-center justify-between"
       title={isDisabled ? disabledReason : undefined}
     >
-      <span className={cn(
-        "text-[11px] font-semibold uppercase tracking-widest",
-        isDisabled ? "text-muted-foreground/40" : "text-muted-foreground",
-      )}>
+      <span
+        className={cn(
+          "text-[11px] font-semibold tracking-widest uppercase",
+          isDisabled ? "text-muted-foreground/40" : "text-muted-foreground"
+        )}
+      >
         {label}
       </span>
       <button
@@ -375,7 +432,9 @@ function ToggleRow({
           "relative h-5 w-9 rounded-full transition-colors duration-200",
           isDisabled
             ? "cursor-not-allowed bg-muted opacity-40"
-            : enabled ? "bg-primary" : "bg-muted"
+            : enabled
+              ? "bg-primary"
+              : "bg-muted"
         )}
       >
         <span
@@ -386,5 +445,5 @@ function ToggleRow({
         />
       </button>
     </div>
-  );
+  )
 }

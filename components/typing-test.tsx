@@ -19,17 +19,30 @@ interface TypingTestProps {
 }
 
 export function TypingTest(props: TypingTestProps) {
-  const { realtimeWpm, faahMode, ghostMode } = useSettings()
+  const { realtimeWpm, faahMode, ghostMode, shakeMode } = useSettings()
   const faahAudioRef = useRef<HTMLAudioElement | null>(null)
+  const shakeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onWrongKey = useCallback(() => {
-    if (!faahMode) return
-    if (!faahAudioRef.current) {
-      faahAudioRef.current = new Audio("/sounds/fahhhhh.mp3")
+    if (faahMode) {
+      if (!faahAudioRef.current) {
+        faahAudioRef.current = new Audio("/sounds/fahhhhh.mp3")
+      }
+      faahAudioRef.current.currentTime = 0
+      void faahAudioRef.current.play()
     }
-    faahAudioRef.current.currentTime = 0
-    void faahAudioRef.current.play()
-  }, [faahMode])
+    if (shakeMode && typeof document !== "undefined") {
+      const body = document.body
+      body.classList.remove("screen-shake")
+      // Force reflow so the animation can restart on rapid repeats.
+      void body.offsetWidth
+      body.classList.add("screen-shake")
+      if (shakeTimeoutRef.current) clearTimeout(shakeTimeoutRef.current)
+      shakeTimeoutRef.current = setTimeout(() => {
+        body.classList.remove("screen-shake")
+      }, 320)
+    }
+  }, [faahMode, shakeMode])
 
   const {
     mode,
