@@ -64,6 +64,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
     setShowDiacritics,
   } = useSettings()
   const isRTL = isRTLLanguage(language)
+  const [isMobile, setIsMobile] = useState(false)
   const [fontPickerOpen, setFontPickerOpen] = useState(false)
   const [langPickerOpen, setLangPickerOpen] = useState(false)
   const [languages, setLanguages] = useState<Language[]>([])
@@ -82,6 +83,13 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
   const selectedFont = FONT_OPTIONS.find((f) => f.id === font)
   const selectedLang = languages.find((l) => l.code === language)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   useEffect(() => {
     if (open && languages.length === 0) {
@@ -155,7 +163,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 <NextThemeSwitcher />
               </section>
 
-              {soundEnabled && (
+              {soundEnabled && !isMobile && (
                 <section>
                   <SectionLabel>Keys</SectionLabel>
                   <div className="mt-3 grid grid-cols-3 gap-2">
