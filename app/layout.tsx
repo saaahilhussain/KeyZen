@@ -1,4 +1,4 @@
-import { GoogleTagManager } from "@next/third-parties/google"
+import { GoogleAnalytics } from "@next/third-parties/google"
 import { Doto, Geist_Mono, Space_Grotesk } from "next/font/google"
 import type { Metadata } from "next"
 
@@ -79,8 +79,8 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", spaceGrotesk.variable, doto.variable)}
-    >
-      <GoogleTagManager gtmId="GTM-W5HG68WM" />
+    >  
+     <GoogleAnalytics gaId="G-CF6Q22DV51" />   
       <body>
         <noscript>
           <iframe
