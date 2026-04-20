@@ -65,6 +65,7 @@ export function TypingTest(props: TypingTestProps) {
     isActivelyTyping,
     screenFade,
     wpm,
+    accuracy,
     isRTL,
     capsLock,
     controlsVisible,
@@ -161,35 +162,45 @@ export function TypingTest(props: TypingTestProps) {
 
         {/* Timer / progress — always reserves space */}
         <motion.div
-          className="mb-3 flex min-h-8 items-center gap-3"
+          className="mb-3 flex min-h-8 items-center gap-5"
           animate={{ opacity: resetting ? 0 : 1 }}
           transition={{ duration: 0.15 }}
         >
-          {mode === "time" && (
-            <span
+          <div className="flex min-w-0 items-center gap-5">
+            {mode === "time" && (
+              <span
+                className={cn(
+                  "font-mono text-2xl font-bold text-primary tabular-nums transition-opacity duration-200",
+                  started ? "opacity-100" : "opacity-0"
+                )}
+              >
+                {timeLeft}
+              </span>
+            )}
+            {mode === "words" && (
+              <span
+                className={cn(
+                  "font-mono text-2xl font-bold text-primary tabular-nums transition-opacity duration-200",
+                  started ? "opacity-100" : "opacity-0"
+                )}
+              >
+                {wordIndex}/{wordOption}
+              </span>
+            )}
+            <div
               className={cn(
-                "font-mono text-2xl font-bold text-primary transition-opacity duration-200",
-                started ? "opacity-100" : "opacity-0"
+                "flex items-center gap-5 font-mono text-lg text-muted-foreground transition-opacity duration-200",
+                realtimeWpm && started ? "opacity-100" : "opacity-0"
               )}
             >
-              {timeLeft}
-            </span>
-          )}
-          {mode === "words" && (
-            <span
-              className={cn(
-                "font-mono text-2xl font-bold text-primary tabular-nums transition-opacity duration-200",
-                started ? "opacity-100" : "opacity-0"
-              )}
-            >
-              {wordIndex}/{wordOption}
-            </span>
-          )}
-          {realtimeWpm && started && wpm > 0 && (
-            <span className="font-mono text-sm text-muted-foreground transition-opacity duration-200">
-              {wpm} <span className="text-xs opacity-60">wpm</span>
-            </span>
-          )}
+              <span className="tabular-nums">
+                {wpm} <span className="text-sm opacity-60">wpm</span>
+              </span>
+              <span className="tabular-nums">
+                {accuracy}% <span className="text-sm opacity-60">acc</span>
+              </span>
+            </div>
+          </div>
         </motion.div>
 
         <div

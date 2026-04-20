@@ -651,7 +651,7 @@ export function useTypingTest({
     punctuation, numbers, difficulty,
     words, typed, wordIndex, started, rowOffset, finished,
     timeLeft, wordInputs, showControls, isFocused, resetting, isActivelyTyping,
-    screenFade, wpm, capsLock,
+    screenFade, wpm, accuracy, capsLock,
     // Computed
     isRTL,
     controlsVisible, showResults, frozenStats: frozenStatsRef.current,

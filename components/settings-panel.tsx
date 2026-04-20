@@ -216,7 +216,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                   disabledReason="keyboard not available on mobile"
                 />
                 <ToggleRow
-                  label="Realtime WPM"
+                  label="Realtime stats"
                   enabled={realtimeWpm}
                   onToggle={() => setRealtimeWpm(!realtimeWpm)}
                 />
