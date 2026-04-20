@@ -239,7 +239,7 @@ export function ResultsScreen({ stats, onRestart, onNext }: ResultsScreenProps) 
   const invalid = isInvalidTestResult(stats)
 
   const [pb] = useState(() => invalid ? null : saveIfPersonalBest(mode, modeDetail, wpm, accuracy));
-  const chartPersonalBest = pb?.isNewPb ? wpm : pb?.previous?.wpm;
+  const chartPersonalBest = wpm;
 
   useEffect(() => {
     if (!invalid && wpm >= 100) {
@@ -567,7 +567,7 @@ function ChartHoverCard({
         </span>
         {personalBest ? (
           <span className="rounded-sm bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-            pb {personalBest}
+            peak {personalBest}
           </span>
         ) : null}
       </div>
