@@ -38,6 +38,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { useWebHaptics } from "web-haptics/react";
+import { toast } from "sonner";
 
 // -----------------------------------------------------------------------------
 // Public API
@@ -168,6 +169,10 @@ interface ResolvedSoundPack {
   defines: Record<string, PackKeyDef | null>;
 }
 
+// Module-level caches so switching back to a previously loaded pack skips the network fetch.
+const rawBufferCache = new Map<string, ArrayBuffer>();
+const rawConfigCache = new Map<string, unknown>();
+
 function KeyboardProvider({
   children,
   containerRef,
@@ -206,17 +211,26 @@ function KeyboardProvider({
         const audioContext = new AudioContext();
         audioContextRef.current = audioContext;
 
-        const spriteBufferPromise = fetch(soundUrl)
-          .then((response) => (response.ok ? response.arrayBuffer() : null))
-          .then((arrayBuffer) => (arrayBuffer ? audioContext.decodeAudioData(arrayBuffer) : null));
+        const fetchRawBuffer = rawBufferCache.has(soundUrl)
+          ? Promise.resolve(rawBufferCache.get(soundUrl)!)
+          : fetch(soundUrl)
+              .then((r) => (r.ok ? r.arrayBuffer() : null))
+              .then((ab) => { if (ab) rawBufferCache.set(soundUrl, ab); return ab; });
 
-        const configPromise = soundConfigUrl
-          ? fetch(soundConfigUrl)
-              .then((response) => (response.ok ? response.json() : null))
-              .catch(() => null)
+        const fetchConfig = soundConfigUrl
+          ? rawConfigCache.has(soundConfigUrl)
+            ? Promise.resolve(rawConfigCache.get(soundConfigUrl))
+            : fetch(soundConfigUrl)
+                .then((r) => (r.ok ? r.json() : null))
+                .then((cfg) => { if (cfg) rawConfigCache.set(soundConfigUrl, cfg); return cfg; })
+                .catch(() => null)
           : Promise.resolve(null);
 
-        const [spriteBuffer, rawConfig] = await Promise.all([spriteBufferPromise, configPromise]);
+        const spriteBufferPromise = fetchRawBuffer.then((ab) =>
+          ab ? audioContext.decodeAudioData(ab.slice(0)) : null
+        );
+
+        const [spriteBuffer, rawConfig] = await Promise.all([spriteBufferPromise, fetchConfig]);
         if (cancelled) {
           return;
         }
@@ -235,7 +249,7 @@ function KeyboardProvider({
           soundPackRef.current = pack;
         }
       } catch {
-        // Sound is optional. Keep UI interactive if loading fails.
+        toast.error("Failed to load keyboard sounds. Check your network connection and try again.");
       }
     };
 

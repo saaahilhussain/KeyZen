@@ -1,7 +1,7 @@
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { Doto, Geist_Mono, Space_Grotesk } from "next/font/google"
 import type { Metadata } from "next"
-
+import { Toaster } from "sonner"
 import "./globals.css"
 import { AppChrome } from "@/components/app-chrome"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -82,6 +82,7 @@ export default function RootLayout({
     >  
      <GoogleAnalytics gaId="G-CF6Q22DV51" />   
       <body>
+        <Toaster/>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-W5HG68WM"
