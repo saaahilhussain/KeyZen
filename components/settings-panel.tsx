@@ -54,6 +54,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
     setShowKeyboard,
     soundEnabled,
     setSoundEnabled,
+    clickSoundEnabled,
+    setClickSoundEnabled,
     realtimeWpm,
     setRealtimeWpm,
     faahMode,
@@ -210,10 +212,15 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                   disabledReason="keyboard not available on mobile"
                 />
                 <ToggleRow
-                  label="Sound"
+                  label="Keyboard sound"
                   enabled={soundEnabled}
                   onToggle={() => setSoundEnabled(!soundEnabled)}
                   disabledReason="keyboard not available on mobile"
+                />
+                <ToggleRow
+                  label="Click sound"
+                  enabled={clickSoundEnabled}
+                  onToggle={() => setClickSoundEnabled(!clickSoundEnabled)}
                 />
                 <ToggleRow
                   label="Realtime stats"
@@ -620,8 +627,8 @@ function ToggleRow({
           isDisabled
             ? "cursor-not-allowed bg-muted opacity-40"
             : enabled
-              ? "bg-primary"
-              : "bg-muted"
+              ? "cursor-pointer bg-primary"
+              : "cursor-pointer bg-muted"
         )}
       >
         <span

@@ -192,6 +192,8 @@ interface SettingsContextType {
   setShowKeyboard: (v: boolean) => void;
   soundEnabled: boolean;
   setSoundEnabled: (v: boolean) => void;
+  clickSoundEnabled: boolean;
+  setClickSoundEnabled: (v: boolean) => void;
   realtimeWpm: boolean;
   setRealtimeWpm: (v: boolean) => void;
   faahMode: boolean;
@@ -237,6 +239,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [font, setFontState] = useState<TypingFont>("geist-mono");
   const [showKeyboard, setShowKeyboardState] = useState(true);
   const [soundEnabled, setSoundEnabledState] = useState(true);
+  const [clickSoundEnabled, setClickSoundEnabledState] = useState(true);
   const [realtimeWpm, setRealtimeWpmState] = useState(false);
   const [faahMode, setFaahModeState] = useState(false);
   const [ghostMode, setGhostModeState] = useState(false);
@@ -268,6 +271,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
     if (savedShowKeyboard !== null) setShowKeyboardState(savedShowKeyboard !== "false");
     if (savedSoundEnabled !== null) setSoundEnabledState(savedSoundEnabled !== "false");
+
+    const savedClickSoundEnabled = localStorage.getItem("tc-click-sound-enabled");
+    if (savedClickSoundEnabled !== null) setClickSoundEnabledState(savedClickSoundEnabled !== "false");
     if (savedRealtimeWpm !== null) setRealtimeWpmState(savedRealtimeWpm === "true");
     if (savedFaahMode !== null) setFaahModeState(savedFaahMode === "true");
     if (savedGhostMode !== null) setGhostModeState(savedGhostMode === "true");
@@ -308,6 +314,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const setSoundEnabled = (v: boolean) => {
     setSoundEnabledState(v);
     localStorage.setItem("tc-sound-enabled", String(v));
+  };
+
+  const setClickSoundEnabled = (v: boolean) => {
+    setClickSoundEnabledState(v);
+    localStorage.setItem("tc-click-sound-enabled", String(v));
   };
 
   const setRealtimeWpm = (v: boolean) => {
@@ -360,6 +371,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         font, setFont, fontCssFamily,
         showKeyboard, setShowKeyboard,
         soundEnabled, setSoundEnabled,
+        clickSoundEnabled, setClickSoundEnabled,
         realtimeWpm, setRealtimeWpm,
         faahMode, setFaahMode,
         ghostMode, setGhostMode,

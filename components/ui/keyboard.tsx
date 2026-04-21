@@ -805,6 +805,7 @@ function Key({
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerRelease}
       onPointerCancel={handlePointerRelease}
+      data-no-click-sound
       style={{ height: 50, width }}
       className="flex items-end cursor-pointer touch-none appearance-none border-0 bg-transparent p-0 text-left focus:outline-none"
     >

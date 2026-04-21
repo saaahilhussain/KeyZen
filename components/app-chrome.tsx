@@ -21,6 +21,7 @@ import { DynamicFavicon } from "@/components/dynamic-favicon"
 import { SettingsPanel } from "@/components/settings-panel"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useClickSound } from "@/hooks/use-click-sound"
 
 interface AppChromeContextValue {
   settingsOpen: boolean
@@ -43,6 +44,7 @@ export function AppChrome({ children }: { children: ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [typingActive, setTypingActive] = useState(false)
   const homeLogoHandlerRef = useRef<(() => void) | null>(null)
+  useClickSound()
 
   useMountEffect(() => {
     if ("serviceWorker" in navigator) {
