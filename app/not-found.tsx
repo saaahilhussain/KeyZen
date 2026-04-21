@@ -1,6 +1,5 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import AnimatedCat from "./not-found-cat"
 
 export const metadata: Metadata = {
   title: "404 — KeyZen",
@@ -13,11 +12,7 @@ export default function NotFound() {
       <div className="flex max-w-xl flex-col items-center text-center">
         <div className="relative flex items-center justify-center">
           <span className="font-(family-name:--font-doto) text-[10rem] font-bold leading-none text-foreground sm:text-[14rem]">
-            40
-          </span>
-          <span className="relative inline-block font-(family-name:--font-doto) text-[10rem] font-bold leading-none text-foreground sm:text-[14rem]">
-            <AnimatedCat />
-            <span className="relative z-10 bg-background">4</span>
+            404
           </span>
         </div>
 
