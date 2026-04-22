@@ -1,7 +1,7 @@
 import { GoogleAnalytics } from "@next/third-parties/google"
 import { Doto, Geist_Mono, Space_Grotesk } from "next/font/google"
 import type { Metadata } from "next"
-import { Toaster } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 import { AppChrome } from "@/components/app-chrome"
 import { ThemeProvider } from "@/components/theme-provider"
