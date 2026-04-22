@@ -240,10 +240,12 @@ export function ScreenshotButton({ stats, pb }: ScreenshotButtonProps) {
         <DialogHeader>
           <DialogTitle>Share your result</DialogTitle>
         </DialogHeader>
-        <div className="flex justify-center overflow-auto py-2">
-          <div ref={cardRef}>
-            <ShareableResultCard stats={stats} pb={pb} theme={theme} />
-          </div>
+        <div className="flex justify-center py-2">
+          <ScaledCardPreview>
+            <div ref={cardRef}>
+              <ShareableResultCard stats={stats} pb={pb} theme={theme} />
+            </div>
+          </ScaledCardPreview>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2">
           <CornerBrackets className="inline-flex">
@@ -282,6 +284,61 @@ export function ScreenshotButton({ stats, pb }: ScreenshotButtonProps) {
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+const CARD_WIDTH = 720
+
+function ScaledCardPreview({ children }: { children: React.ReactNode }) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  const [innerHeight, setInnerHeight] = useState(0)
+
+  useEffect(() => {
+    const measure = () => {
+      const w = wrapperRef.current?.getBoundingClientRect().width ?? 0
+
+      const h = innerRef.current?.offsetHeight ?? 0
+      if (h > 0) setInnerHeight(h)
+      if (w > 0 && h > 0) {
+        const maxPreviewHeight = Math.max(200, window.innerHeight * 0.55)
+        const scaleByWidth = w < CARD_WIDTH ? w / CARD_WIDTH : 1
+        const scaleByHeight = h > maxPreviewHeight ? maxPreviewHeight / h : 1
+        setScale(Math.min(scaleByWidth, scaleByHeight, 1))
+      }
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    if (wrapperRef.current) ro.observe(wrapperRef.current)
+    if (innerRef.current) ro.observe(innerRef.current)
+    window.addEventListener("resize", measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", measure)
+    }
+  }, [])
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="relative w-full overflow-hidden"
+      style={{ height: innerHeight * scale }}
+    >
+      <div
+        ref={innerRef}
+        style={{
+          width: CARD_WIDTH,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -337,7 +394,7 @@ export function ShareableResultCard({
         padding: "28px 32px",
       }}
     >
-      {/* Header */}
+
       <div
         className="flex items-center justify-between"
         style={{ marginBottom: 20 }}

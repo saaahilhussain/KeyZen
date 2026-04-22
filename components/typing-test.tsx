@@ -164,9 +164,14 @@ export function TypingTest(props: TypingTestProps) {
           </AnimatePresence>
         </div>
 
-        {/* Timer / progress — always reserves space */}
+        {/* Timer / progress — reserves space on desktop; fully collapses on mobile when not started */}
         <motion.div
-          className="mb-3 flex min-h-8 items-center gap-5"
+          className={cn(
+            "flex items-center gap-5 md:mb-3 md:min-h-8",
+            started
+              ? "mb-3 min-h-8"
+              : "mb-0 h-0 min-h-0 overflow-hidden md:h-auto",
+          )}
           animate={{ opacity: resetting ? 0 : 1 }}
           transition={{ duration: 0.15 }}
         >
@@ -309,13 +314,13 @@ export function TypingTest(props: TypingTestProps) {
       {/* Restart button */}
       <RestartButton controlsVisible={controlsVisible} onRestart={onRestart} />
 
-      {/* Keyboard shortcuts hint */}
+      {/* Keyboard shortcuts hint — hidden on mobile (no tab/shift keys) */}
       <motion.div
         animate={{
           opacity: mode === "zen" && started ? 1 : controlsVisible ? 1 : 0,
         }}
         transition={{ duration: 0.4 }}
-        className="flex items-center gap-4 text-xs text-muted-foreground"
+        className="hidden items-center gap-4 text-xs text-muted-foreground md:flex"
       >
         {mode === "zen" && started ? (
           <span>

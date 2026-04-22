@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -46,8 +47,27 @@ export function AppChrome({ children }: { children: ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [testSettingsOpen, setTestSettingsOpen] = useState(false)
   const [typingActive, setTypingActive] = useState(false)
+  const [keyboardInset, setKeyboardInset] = useState(0)
   const homeLogoHandlerRef = useRef<(() => void) | null>(null)
   useClickSound()
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const vv = window.visualViewport
+    if (!vv) return
+    let baseHeight = vv.height
+    const onResize = () => {
+      const delta = baseHeight - vv.height
+      if (delta > 100) {
+        setKeyboardInset(delta)
+      } else {
+        baseHeight = Math.max(baseHeight, vv.height)
+        setKeyboardInset(0)
+      }
+    }
+    vv.addEventListener("resize", onResize)
+    return () => vv.removeEventListener("resize", onResize)
+  }, [])
 
   useMountEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -68,13 +88,29 @@ export function AppChrome({ children }: { children: ReactNode }) {
     [settingsOpen, testSettingsOpen, typingActive],
   )
 
+  const keyboardOpen = keyboardInset > 0
+
   return (
     <AppChromeContext.Provider value={value}>
       <DynamicFavicon />
-      <div className="flex min-h-dvh w-full flex-col bg-background">
+      <motion.div
+        initial={false}
+        animate={{
+          height: keyboardOpen ? `calc(100dvh - ${keyboardInset}px)` : "100dvh",
+          opacity: keyboardOpen ? [0.9, 1] : 1,
+          y: keyboardOpen ? [14, 0] : 0,
+        }}
+        transition={{
+          height: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+          y: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+        }}
+        className="flex w-full flex-col bg-background"
+        style={{ minHeight: keyboardOpen ? 0 : "100dvh" }}
+      >
         <SiteHeader />
         {children}
-      </div>
+      </motion.div>
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </AppChromeContext.Provider>
   )
@@ -89,14 +125,11 @@ function SiteHeader() {
   const isHome = pathname === "/"
   const dimHeader = isHome && typingActive
 
-  // Rule 1: derive header visibility inline instead of syncing via useEffect.
-  // mouseHeaderVisible tracks the temporary override when the user moves the mouse
-  // while actively typing on the home page.
+  
   const [mouseHeaderVisible, setMouseHeaderVisible] = useState(false)
   const headerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Base: always visible unless on home page AND actively typing.
-  // Mouse override only matters when the base would hide the header.
+
   const headerVisible = !isHome || !typingActive || (isHome && typingActive && mouseHeaderVisible)
 
   const handleHeaderMouseMove = useCallback(() => {
@@ -106,7 +139,7 @@ function SiteHeader() {
     headerTimerRef.current = setTimeout(() => setMouseHeaderVisible(false), 2500)
   }, [isHome, typingActive])
 
-  // Rule 4: useMountEffect for cleanup-only timer on unmount.
+
   useMountEffect(() => {
     return () => {
       if (headerTimerRef.current) clearTimeout(headerTimerRef.current)
