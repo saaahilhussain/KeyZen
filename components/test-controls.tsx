@@ -4,14 +4,15 @@ import { motion } from "motion/react";
 import {
   IconAt, IconClock, IconLetterA, IconQuote,
   IconMountain, IconNumber, IconFeather, IconFlame,
+  IconTool, IconPencil,
 } from "@tabler/icons-react";
+import { CustomTextDialog } from "@/components/custom-text-dialog";
 import type { QuoteLength } from "@/lib/quotes";
 import type { Difficulty } from "@/lib/words";
 import { cn } from "@/lib/utils";
 import {
   Tabs, TabsList, TabsTrigger,
 } from "@/components/animate-ui/components/animate/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TestMode, TimeOption, WordOption } from "@/lib/test-storage";
 
 export interface TestControlsProps {
@@ -22,6 +23,7 @@ export interface TestControlsProps {
   punctuation: boolean;
   numbers: boolean;
   difficulty: Difficulty | undefined;
+  customText: string;
   controlsVisible: boolean;
   onModeChange: (next: TestMode) => void;
   onTimeOptionChange: (next: TimeOption) => void;
@@ -30,15 +32,16 @@ export interface TestControlsProps {
   onPunctuationToggle: () => void;
   onNumbersToggle: () => void;
   onDifficultyToggle: (d: Difficulty) => void;
+  onCustomTextChange: (next: string) => void;
   onRestart: () => void;
 }
 
 export function TestControls({
   mode, timeOption, wordOption, quoteLength,
-  punctuation, numbers, difficulty,
+  punctuation, numbers, difficulty, customText,
   controlsVisible,
   onModeChange, onTimeOptionChange, onWordOptionChange, onQuoteLengthChange,
-  onPunctuationToggle, onNumbersToggle, onDifficultyToggle, onRestart,
+  onPunctuationToggle, onNumbersToggle, onDifficultyToggle, onCustomTextChange, onRestart,
 }: TestControlsProps) {
   const btnClass = (active: boolean) => cn(
     "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
@@ -81,10 +84,11 @@ export function TestControls({
       <Tabs value={mode} onValueChange={(v) => onModeChange(v as TestMode)} className="flex items-center">
         <TabsList>
           {([
-            { value: "time",  icon: IconClock,   label: "time"  },
-            { value: "words", icon: IconLetterA,  label: "words" },
-            { value: "quote", icon: IconQuote,    label: "quote" },
-            { value: "zen",   icon: IconMountain, label: "zen"   },
+            { value: "time",   icon: IconClock,    label: "time"   },
+            { value: "words",  icon: IconLetterA,  label: "words"  },
+            { value: "quote",  icon: IconQuote,    label: "quote"  },
+            { value: "zen",    icon: IconMountain, label: "zen"    },
+            { value: "custom", icon: IconTool,     label: "custom" },
           ] as const).map(({ value, icon: Icon, label }) => (
             <TabsTrigger key={value} value={value} className="gap-1.5 px-3 text-xs">
               <Icon size={13} />
@@ -115,6 +119,20 @@ export function TestControls({
                 ))}
               </TabsList>
             </Tabs>
+          ) : mode === "custom" ? (
+            <CustomTextDialog
+              value={customText}
+              onSave={onCustomTextChange}
+              trigger={
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
+                >
+                  <IconPencil size={13} />
+                  change
+                </button>
+              }
+            />
           ) : (
             <Tabs value={String(timeOption)} onValueChange={(v) => onTimeOptionChange(Number(v) as TimeOption)} className="flex items-center">
               <TabsList>

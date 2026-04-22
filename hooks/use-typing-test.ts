@@ -16,14 +16,20 @@ import {
   type TestMode, type TimeOption, type WordOption,
   TEST_MODE_STORAGE_KEY, TIME_OPTION_STORAGE_KEY, WORD_OPTION_STORAGE_KEY,
   QUOTE_LENGTH_STORAGE_KEY, PUNCTUATION_STORAGE_KEY, NUMBERS_STORAGE_KEY, DIFFICULTY_STORAGE_KEY,
+  CUSTOM_TEXT_STORAGE_KEY, DEFAULT_CUSTOM_TEXT,
   readStoredTestMode, readStoredTimeOption, readStoredWordOption,
-  readStoredQuoteLength, readStoredBool, readStoredDifficulty,
+  readStoredQuoteLength, readStoredBool, readStoredDifficulty, readStoredCustomText,
 } from "@/lib/test-storage";
+
+function customTextToWords(text: string): string[] {
+  return text.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+}
 
 type ResetOverrides = Partial<{
   mode: TestMode; quoteLength: QuoteLength; wordOption: WordOption;
   timeOption: TimeOption; punctuation: boolean; numbers: boolean;
   difficulty: Difficulty | undefined; language: string; showDiacritics: boolean;
+  customText: string;
 }>;
 
 interface UseTypingTestProps {
@@ -58,6 +64,7 @@ export function useTypingTest({
   const [punctuation, setPunctuation] = useState(false);
   const [numbers, setNumbers] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty | undefined>("easy");
+  const [customText, setCustomText] = useState<string>(DEFAULT_CUSTOM_TEXT);
 
   // Language word pool cache (kept in a ref so it survives re-renders)
   const langPoolRef = useRef<{ code: string; hard: boolean; words: string[] } | null>(null);
@@ -163,6 +170,7 @@ export function useTypingTest({
     const d = "difficulty" in overrides ? overrides.difficulty : difficulty;
     const lang = overrides.language ?? language;
     const sd = "showDiacritics" in overrides ? overrides.showDiacritics : showDiacritics;
+    const ct = overrides.customText ?? customText;
     const wc = m === "time" ? 200 : m === "words" ? wo : 100;
 
     setQuoteAuthor(null);
@@ -170,6 +178,9 @@ export function useTypingTest({
       const { words: newWords, author } = getQuote(ql);
       setWords(newWords);
       setQuoteAuthor(author);
+    } else if (m === "custom") {
+      const customWords = customTextToWords(ct);
+      setWords(customWords.length > 0 ? customWords : customTextToWords(DEFAULT_CUSTOM_TEXT));
     } else {
       const newWords = await buildWords(lang, wc, { punctuation: p, numbers: n, difficulty: d, showDiacritics: sd });
       setWords(newWords);
@@ -194,7 +205,7 @@ export function useTypingTest({
     onFinished?.(false);
     onTypingActiveChange?.(false);
     inputRef.current?.focus();
-  }, [mode, quoteLength, wordOption, timeOption, punctuation, numbers, difficulty, language, showDiacritics, buildWords, onFinished, onTypingActiveChange]);
+  }, [mode, quoteLength, wordOption, timeOption, punctuation, numbers, difficulty, language, showDiacritics, customText, buildWords, onFinished, onTypingActiveChange]);
 
   const resetTestImmediate = useCallback(() => resetTestWith(), [resetTestWith]);
 
@@ -219,6 +230,7 @@ export function useTypingTest({
     const storedPunctuation = readStoredBool(PUNCTUATION_STORAGE_KEY);
     const storedNumbers = readStoredBool(NUMBERS_STORAGE_KEY);
     const storedDifficulty = readStoredDifficulty();
+    const storedCustomText = readStoredCustomText();
 
     const m = storedMode ?? mode;
     const to = storedTime ?? timeOption;
@@ -236,12 +248,17 @@ export function useTypingTest({
     if (storedPunctuation !== undefined) setPunctuation(storedPunctuation);
     if (storedNumbers !== undefined) setNumbers(storedNumbers);
     if (storedDifficulty !== undefined) setDifficulty(storedDifficulty);
+    if (storedCustomText !== undefined) setCustomText(storedCustomText);
 
+    const ct = storedCustomText ?? customText;
     const wc = m === "time" ? 200 : m === "words" ? wo : 100;
     if (m === "quote") {
       const { words: initWords, author } = getQuote(ql);
       setWords(initWords);
       setQuoteAuthor(author);
+    } else if (m === "custom") {
+      const customWords = customTextToWords(ct);
+      setWords(customWords.length > 0 ? customWords : customTextToWords(DEFAULT_CUSTOM_TEXT));
     } else {
       buildWords(lang, wc, { punctuation: p, numbers: n, difficulty: d, showDiacritics }).then((w) => setWords(w));
     }
@@ -540,7 +557,7 @@ export function useTypingTest({
       elapsedSeconds: Math.round(elapsed),
       correctedErrors: correctedErrorsRef.current,
       mode,
-      modeDetail: mode === "time" ? String(timeOption) : mode === "words" ? String(wordOption) : mode === "quote" ? quoteLength : "",
+      modeDetail: mode === "time" ? String(timeOption) : mode === "words" ? String(wordOption) : mode === "quote" ? quoteLength : mode === "custom" ? "custom" : "",
       wpmHistory,
     };
   }
@@ -633,6 +650,12 @@ export function useTypingTest({
     resetTest({ numbers: next });
   }, [numbers, resetTest]);
 
+  const onCustomTextChange = useCallback((next: string) => {
+    setCustomText(next);
+    localStorage.setItem(CUSTOM_TEXT_STORAGE_KEY, next);
+    resetTest({ customText: next, mode: "custom" });
+  }, [resetTest]);
+
   const onDifficultyToggle = useCallback((d: Difficulty) => {
     const next = difficulty === d ? undefined : d;
     setDifficulty(next);
@@ -648,7 +671,7 @@ export function useTypingTest({
   return {
     // State
     mode, timeOption, wordOption, quoteLength, quoteAuthor,
-    punctuation, numbers, difficulty,
+    punctuation, numbers, difficulty, customText,
     words, typed, wordIndex, started, rowOffset, finished,
     timeLeft, wordInputs, showControls, isFocused, resetting, isActivelyTyping,
     screenFade, wpm, accuracy, capsLock,
@@ -662,6 +685,7 @@ export function useTypingTest({
     handleMouseMove, handleResultsRestart, handleResultsNext,
     onModeChange, onTimeOptionChange, onWordOptionChange, onQuoteLengthChange,
     onPunctuationToggle, onNumbersToggle, onDifficultyToggle,
+    onCustomTextChange,
     onRestart: () => resetTest(),
   };
 }

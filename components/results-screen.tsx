@@ -243,7 +243,7 @@ export function ResultsScreen({ stats, onRestart, onNext }: ResultsScreenProps) 
   const chartPersonalBest = wpm;
 
   useEffect(() => {
-    if (!invalid && wpm >= 100) {
+    if (!invalid && pb?.isNewPb) {
       const timer = setTimeout(() => {
         confettiRef.current?.fire({
           particleCount: 200,
@@ -255,7 +255,7 @@ export function ResultsScreen({ stats, onRestart, onNext }: ResultsScreenProps) 
       }, 400)
       return () => clearTimeout(timer)
     }
-  }, [invalid, wpm])
+  }, [invalid, pb?.isNewPb])
 
   if (invalid) {
     return (
@@ -304,7 +304,7 @@ export function ResultsScreen({ stats, onRestart, onNext }: ResultsScreenProps) 
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="flex w-full flex-col gap-6 md:max-w-5xl md:mx-auto mt-12 md:mt-0"
     >
-      {wpm >= 100 && (
+      {pb?.isNewPb && (
         <Confetti
           ref={confettiRef}
           manualstart

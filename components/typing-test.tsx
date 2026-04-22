@@ -53,6 +53,7 @@ export function TypingTest(props: TypingTestProps) {
     punctuation,
     numbers,
     difficulty,
+    customText,
     words,
     typed,
     wordIndex,
@@ -88,6 +89,7 @@ export function TypingTest(props: TypingTestProps) {
     onPunctuationToggle,
     onNumbersToggle,
     onDifficultyToggle,
+    onCustomTextChange,
     onRestart,
   } = useTypingTest({ ...props, onWrongKey })
 
@@ -128,6 +130,7 @@ export function TypingTest(props: TypingTestProps) {
         punctuation={punctuation}
         numbers={numbers}
         difficulty={difficulty}
+        customText={customText}
         controlsVisible={controlsVisible}
         onModeChange={onModeChange}
         onTimeOptionChange={onTimeOptionChange}
@@ -136,6 +139,7 @@ export function TypingTest(props: TypingTestProps) {
         onPunctuationToggle={onPunctuationToggle}
         onNumbersToggle={onNumbersToggle}
         onDifficultyToggle={onDifficultyToggle}
+        onCustomTextChange={onCustomTextChange}
         onRestart={onRestart}
       />
 

@@ -1,6 +1,6 @@
 
 
-export type WpmCountMode = "time" | "words" | "quote" | "zen"
+export type WpmCountMode = "time" | "words" | "quote" | "zen" | "custom"
 
 export interface WpmCounts {
   correctWordChars: number
