@@ -31,7 +31,7 @@ const MAX_RAW_WPM = 350
 const MAX_CHARS_PER_SEC = 30
 const MAX_BURST_WPM = 600
 // Min test duration before we can draw conclusions
-const MIN_ELAPSED_SECONDS = 15
+const MIN_ELAPSED_SECONDS = 5
 // How many consecutive 0-raw seconds mid-test triggers an AFK flag
 const MAX_CONSECUTIVE_ZERO_SECONDS = 3
 // Minimum history length before statistical checks kick in (avoid false positives on short tests)
