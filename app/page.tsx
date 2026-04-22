@@ -9,7 +9,7 @@ import { TypingTest } from "@/components/typing-test"
 import { useSettings, SOUND_PACKS } from "@/components/settings-context"
 
 export default function Page() {
-  const { settingsOpen, setTypingActive, homeLogoHandlerRef } = useAppChrome()
+  const { settingsOpen, testSettingsOpen, setTypingActive, homeLogoHandlerRef } = useAppChrome()
   const [isFinished, setIsFinished] = useState(false)
   const [typingFocused, setTypingFocused] = useState(true)
   const [restartKey, setRestartKey] = useState(0)
@@ -57,7 +57,7 @@ export default function Page() {
           onFinished={setIsFinished}
           onTypingActiveChange={handleTypingActiveChange}
           onFocusChange={setTypingFocused}
-          pauseTypingInputRefocus={settingsOpen}
+          pauseTypingInputRefocus={settingsOpen || testSettingsOpen}
         />
       </main>
 

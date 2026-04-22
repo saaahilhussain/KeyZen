@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAppChrome } from "@/components/app-chrome";
 import { motion } from "motion/react";
 import {
   IconAt, IconClock, IconLetterA, IconQuote,
   IconMountain, IconNumber, IconFeather, IconFlame,
-  IconTool, IconPencil, IconAdjustments,
+  IconTool, IconPencil, IconAdjustments, IconX,
 } from "@tabler/icons-react";
 import { CustomTextDialog } from "@/components/custom-text-dialog";
 import type { QuoteLength } from "@/lib/quotes";
@@ -18,13 +19,11 @@ import type { TestMode, TimeOption, WordOption } from "@/lib/test-storage";
 import {
   Drawer,
   DrawerContent,
-  DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 
@@ -56,8 +55,14 @@ export function TestControls({
   onModeChange, onTimeOptionChange, onWordOptionChange, onQuoteLengthChange,
   onPunctuationToggle, onNumbersToggle, onDifficultyToggle, onCustomTextChange, onRestart,
 }: TestControlsProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpenState] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const { setTestSettingsOpen } = useAppChrome();
+
+  const setDrawerOpen = (open: boolean) => {
+    setDrawerOpenState(open);
+    setTestSettingsOpen(open);
+  };
 
   useEffect(() => {
     const check = () => setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
@@ -315,7 +320,11 @@ export function TestControls({
         <div className="flex lg:hidden items-center justify-center">
           <button
             type="button"
-            onClick={() => setDrawerOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              (document.activeElement as HTMLElement | null)?.blur();
+              setDrawerOpen(true);
+            }}
             className="flex items-center gap-2 rounded-xl border border-border bg-zinc-100 px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground dark:bg-zinc-800 cursor-pointer"
           >
             <IconAdjustments size={16} />
@@ -327,13 +336,23 @@ export function TestControls({
       {/* Mobile: bottom drawer */}
       {!isTablet && (
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader className="pb-0">
-              <DrawerTitle className="flex items-center gap-2 text-base">
-                <IconAdjustments size={16} />
+          <DrawerContent
+            className="max-h-[90dvh]"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <DrawerTitle className="sr-only">Test Settings</DrawerTitle>
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 Test Settings
-              </DrawerTitle>
-            </DrawerHeader>
+              </span>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Close"
+              >
+                <IconX size={14} />
+              </button>
+            </div>
             {settingsContent}
           </DrawerContent>
         </Drawer>
@@ -349,13 +368,21 @@ export function TestControls({
               "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2",
               "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:slide-out-to-bottom-2",
             )}
+            onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <DialogHeader className="px-4 pt-4 pb-0">
-              <DialogTitle className="flex items-center gap-2 text-base">
-                <IconAdjustments size={16} />
+            <DialogTitle className="sr-only">Test Settings</DialogTitle>
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 Test Settings
-              </DialogTitle>
-            </DialogHeader>
+              </span>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Close"
+              >
+                <IconX size={14} />
+              </button>
+            </div>
             <div className="max-h-[75dvh] overflow-y-auto">
               {settingsContent}
             </div>

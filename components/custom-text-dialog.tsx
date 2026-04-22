@@ -19,6 +19,7 @@ import {
 import { CornerBrackets } from "@/components/corner-brackets";
 import { DEFAULT_CUSTOM_TEXT } from "@/lib/test-storage";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 const MAX_CHARS = 20000;
 
@@ -240,18 +241,20 @@ export function CustomTextDialog({
                   type="button"
                   onClick={handleSave}
                   disabled={overLimit || draft.trim().length === 0}
-                  className="flex w-full items-center justify-center gap-2 px-4 py-2 text-sm text-primary transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex w-full items-center justify-center gap-2 px-4 py-2 text-sm bg-primary transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Save and Start
                 </button>
               </CornerBrackets>
+              <CornerBrackets className="w-full flex justify-center items-center">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="px-4 py-1 text-xs text-muted-foreground/70 transition-colors hover:text-foreground"
+                className="px-4 py-1 text-center text-xs text-muted-foreground/70 transition-colors hover:text-foreground"
               >
                 Cancel
               </button>
+              </CornerBrackets>
             </div>
           </div>
         </div>

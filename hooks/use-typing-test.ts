@@ -204,7 +204,7 @@ export function useTypingTest({
     setIsActivelyTyping(false);
     onFinished?.(false);
     onTypingActiveChange?.(false);
-    inputRef.current?.focus();
+    if (!pauseRefocusRef.current) inputRef.current?.focus();
   }, [mode, quoteLength, wordOption, timeOption, punctuation, numbers, difficulty, language, showDiacritics, customText, buildWords, onFinished, onTypingActiveChange]);
 
   const resetTestImmediate = useCallback(() => resetTestWith(), [resetTestWith]);
@@ -263,7 +263,7 @@ export function useTypingTest({
       buildWords(lang, wc, { punctuation: p, numbers: n, difficulty: d, showDiacritics }).then((w) => setWords(w));
     }
     if (m === "time") setTimeLeft(to);
-    inputRef.current?.focus();
+    if (!pauseRefocusRef.current) inputRef.current?.focus();
   });
 
   // ── React to language changes from settings context ──────────────────────
@@ -584,7 +584,7 @@ export function useTypingTest({
     setIsActivelyTyping(false);
     onFinished?.(false);
     onTypingActiveChange?.(false);
-    inputRef.current?.focus();
+    if (!pauseRefocusRef.current) inputRef.current?.focus();
   }, [mode, timeOption, onFinished, onTypingActiveChange]);
 
   // Rule 3: fade results→typing on restart, driven by user action.

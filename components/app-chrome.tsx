@@ -26,6 +26,8 @@ import { useClickSound } from "@/hooks/use-click-sound"
 interface AppChromeContextValue {
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
+  testSettingsOpen: boolean
+  setTestSettingsOpen: (open: boolean) => void
   typingActive: boolean
   setTypingActive: (active: boolean) => void
   homeLogoHandlerRef: React.MutableRefObject<(() => void) | null>
@@ -42,6 +44,7 @@ export function useAppChrome() {
 
 export function AppChrome({ children }: { children: ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [testSettingsOpen, setTestSettingsOpen] = useState(false)
   const [typingActive, setTypingActive] = useState(false)
   const homeLogoHandlerRef = useRef<(() => void) | null>(null)
   useClickSound()
@@ -56,11 +59,13 @@ export function AppChrome({ children }: { children: ReactNode }) {
     () => ({
       settingsOpen,
       setSettingsOpen,
+      testSettingsOpen,
+      setTestSettingsOpen,
       typingActive,
       setTypingActive,
       homeLogoHandlerRef,
     }),
-    [settingsOpen, typingActive],
+    [settingsOpen, testSettingsOpen, typingActive],
   )
 
   return (
