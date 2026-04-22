@@ -100,7 +100,12 @@ export function CustomTextDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
-        className="sm:max-w-[860px] w-[min(860px,calc(100vw-2rem))] p-0"
+        className={cn(
+          "sm:max-w-[860px] w-[min(860px,calc(100vw-2rem))] p-0 max-h-[90dvh] overflow-y-auto",
+          "duration-300 ease-out",
+          "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2",
+          "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:slide-out-to-bottom-2",
+        )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="flex flex-col gap-0 md:grid md:grid-cols-[1.6fr_1fr]">
@@ -126,7 +131,7 @@ export function CustomTextDialog({
                 spellCheck={false}
                 placeholder="Paste your text here…"
                 className={cn(
-                  "font-mono block h-64 w-full resize-none rounded-md border border-border bg-background/40 p-3 text-sm leading-relaxed text-foreground",
+                  "font-mono block h-36 md:h-64 w-full resize-none rounded-md border border-border bg-background/40 p-3 text-sm leading-relaxed text-foreground",
                   "placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40",
                   overLimit && "border-destructive focus-visible:ring-destructive/40",
                 )}
@@ -215,7 +220,7 @@ export function CustomTextDialog({
 
             <div className="h-px bg-border" />
 
-            <section className="flex flex-col gap-2 text-[10px] leading-relaxed text-muted-foreground/60">
+            <section className="hidden md:flex flex-col gap-2 text-[10px] leading-relaxed text-muted-foreground/60">
               <h3 className="font-(family-name:--font-doto) text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Tips
               </h3>

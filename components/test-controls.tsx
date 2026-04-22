@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import {
   IconAt, IconClock, IconLetterA, IconQuote,
   IconMountain, IconNumber, IconFeather, IconFlame,
-  IconTool, IconPencil,
+  IconTool, IconPencil, IconAdjustments,
 } from "@tabler/icons-react";
 import { CustomTextDialog } from "@/components/custom-text-dialog";
 import type { QuoteLength } from "@/lib/quotes";
@@ -14,6 +15,18 @@ import {
   Tabs, TabsList, TabsTrigger,
 } from "@/components/animate-ui/components/animate/tabs";
 import type { TestMode, TimeOption, WordOption } from "@/lib/test-storage";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export interface TestControlsProps {
   mode: TestMode;
@@ -43,46 +56,68 @@ export function TestControls({
   onModeChange, onTimeOptionChange, onWordOptionChange, onQuoteLengthChange,
   onPunctuationToggle, onNumbersToggle, onDifficultyToggle, onCustomTextChange, onRestart,
 }: TestControlsProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const btnClass = (active: boolean) => cn(
-    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
     active ? "text-primary" : "text-muted-foreground hover:text-foreground",
   );
 
-  return (
-    <motion.div
-      animate={{ opacity: controlsVisible ? 1 : 0 }}
-      transition={{ duration: 0.4, ease: "easeInOut" }}
-      className={cn(
-        "flex flex-wrap items-center justify-center gap-2",
-        !controlsVisible && "pointer-events-none select-none",
-      )}
-    >
-      {/* Toggles: punctuation / numbers / difficulty */}
-      <div className="flex flex-row flex-wrap items-center justify-center gap-1 rounded-lg p-1 bg-zinc-100 dark:bg-zinc-800">
-        <button type="button" onClick={onPunctuationToggle} className={btnClass(punctuation)}>
-          <IconAt size={14} />
-          punctuation
-        </button>
-        <button type="button" onClick={onNumbersToggle} className={btnClass(numbers)}>
-          <IconNumber size={14} />
-          numbers
-        </button>
-        <div className="h-4 w-px bg-border" />
-        <button type="button" onClick={() => onDifficultyToggle("easy")} className={btnClass(difficulty === "easy")}>
-          <IconFeather size={14} />
-          easy
-        </button>
-        <button type="button" onClick={() => onDifficultyToggle("hard")} className={btnClass(difficulty === "hard")}>
-          <IconFlame size={14} />
-          hard
-        </button>
+  const drawerBtnClass = (active: boolean) => cn(
+    "flex flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-xs font-medium transition-colors border cursor-pointer",
+    active
+      ? "border-primary/40 bg-primary/10 text-primary"
+      : "border-border bg-zinc-100 dark:bg-zinc-800 text-muted-foreground hover:text-foreground hover:border-border/80",
+  );
+
+  const settingsContent = (
+    <div className="flex flex-col gap-5 px-4 pb-8 pt-2">
+      {/* Toggles group */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Toggles</span>
+        <div className="grid grid-cols-3 gap-2">
+          <button type="button" onClick={onPunctuationToggle} className={drawerBtnClass(punctuation)}>
+            <IconAt size={18} />
+            <span>punctuation</span>
+          </button>
+          <button type="button" onClick={onNumbersToggle} className={drawerBtnClass(numbers)}>
+            <IconNumber size={18} />
+            <span>numbers</span>
+          </button>
+        </div>
       </div>
 
-      <div className="hidden h-4 w-px bg-border sm:block" />
+      <div className="h-px w-full bg-border" />
 
-      {/* Mode tabs */}
-      <Tabs value={mode} onValueChange={(v) => onModeChange(v as TestMode)} className="flex items-center">
-        <TabsList>
+      {/* Difficulty group */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Difficulty</span>
+        <div className="grid grid-cols-3 gap-2">
+          <button type="button" onClick={() => onDifficultyToggle("easy")} className={drawerBtnClass(difficulty === "easy")}>
+            <IconFeather size={18} />
+            <span>easy</span>
+          </button>
+          <button type="button" onClick={() => onDifficultyToggle("hard")} className={drawerBtnClass(difficulty === "hard")}>
+            <IconFlame size={18} />
+            <span>hard</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="h-px w-full bg-border" />
+
+      {/* Mode group */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Mode</span>
+        <div className="grid grid-cols-3 gap-2">
           {([
             { value: "time",   icon: IconClock,    label: "time"   },
             { value: "words",  icon: IconLetterA,  label: "words"  },
@@ -90,65 +125,243 @@ export function TestControls({
             { value: "zen",    icon: IconMountain, label: "zen"    },
             { value: "custom", icon: IconTool,     label: "custom" },
           ] as const).map(({ value, icon: Icon, label }) => (
-            <TabsTrigger key={value} value={value} className="gap-1.5 px-3 text-xs">
-              <Icon size={13} />
-              {label}
-            </TabsTrigger>
+            <button
+              key={value}
+              type="button"
+              onClick={() => onModeChange(value)}
+              className={drawerBtnClass(mode === value)}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+            </button>
           ))}
-        </TabsList>
-      </Tabs>
+        </div>
+      </div>
 
       {mode !== "zen" && (
         <>
-          <div className="hidden h-4 w-px bg-border sm:block" />
+          <div className="h-px w-full bg-border" />
 
-          {/* Count / quote-length / time tabs */}
-          {mode === "words" ? (
-            <Tabs value={String(wordOption)} onValueChange={(v) => onWordOptionChange(Number(v) as WordOption)} className="flex items-center">
-              <TabsList>
+          {/* Options group */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {mode === "words" ? "Word Count" : mode === "quote" ? "Quote Length" : mode === "custom" ? "Custom Text" : "Time (s)"}
+            </span>
+            {mode === "words" ? (
+              <div className="grid grid-cols-4 gap-2">
                 {[10, 25, 50, 100].map((w) => (
-                  <TabsTrigger key={w} value={String(w)} className="px-3 text-xs">{w}</TabsTrigger>
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => onWordOptionChange(w as WordOption)}
+                    className={drawerBtnClass(wordOption === w)}
+                  >
+                    <span className="text-base font-semibold">{w}</span>
+                  </button>
                 ))}
-              </TabsList>
-            </Tabs>
-          ) : mode === "quote" ? (
-            <Tabs value={quoteLength} onValueChange={(v) => onQuoteLengthChange(v as QuoteLength)} className="flex items-center">
-              <TabsList>
+              </div>
+            ) : mode === "quote" ? (
+              <div className="grid grid-cols-3 gap-2">
                 {(["short", "medium", "long"] as QuoteLength[]).map((q) => (
-                  <TabsTrigger key={q} value={q} className="px-3 text-xs">{q}</TabsTrigger>
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => onQuoteLengthChange(q)}
+                    className={drawerBtnClass(quoteLength === q)}
+                  >
+                    <span className="text-base font-semibold">{q}</span>
+                  </button>
                 ))}
-              </TabsList>
-            </Tabs>
-          ) : mode === "custom" ? (
-            <div className="bg-muted inline-flex h-9 items-center justify-center rounded-lg p-[3px]">
+              </div>
+            ) : mode === "custom" ? (
               <CustomTextDialog
                 value={customText}
                 onSave={onCustomTextChange}
                 trigger={
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 rounded-md px-3 h-full text-xs font-medium text-foreground bg-background dark:bg-input/30 shadow-sm transition-colors focus-visible:outline-none"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-zinc-100 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground dark:bg-zinc-800 cursor-pointer"
                   >
-                    <IconPencil size={13} />
-                    change
+                    <IconPencil size={15} />
+                    change text
                   </button>
                 }
               />
-            </div>
-          ) : (
-            <Tabs value={String(timeOption)} onValueChange={(v) => onTimeOptionChange(Number(v) as TimeOption)} className="flex items-center">
-              <TabsList>
+            ) : (
+              <div className="grid grid-cols-4 gap-2">
                 {[15, 30, 60, 120].map((t) => (
-                  <TabsTrigger key={t} value={String(t)} className="px-3 text-xs">{t}</TabsTrigger>
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => onTimeOptionChange(t as TimeOption)}
+                    className={drawerBtnClass(timeOption === t)}
+                  >
+                    <span className="text-base font-semibold">{t}</span>
+                  </button>
                 ))}
-              </TabsList>
-            </Tabs>
-          )}
-
-          <div className="hidden h-4 w-px bg-border sm:block" />
+              </div>
+            )}
+          </div>
         </>
       )}
+    </div>
+  );
 
-    </motion.div>
+  return (
+    <>
+      <motion.div
+        animate={{ opacity: controlsVisible ? 1 : 0 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        className={cn(
+          "w-full",
+          !controlsVisible && "pointer-events-none select-none",
+        )}
+      >
+        {/* Desktop / large screen controls */}
+        <div className="hidden lg:flex flex-wrap items-center justify-center gap-2">
+          {/* Toggles: punctuation / numbers / difficulty */}
+          <div className="flex flex-row flex-wrap items-center justify-center gap-1 rounded-lg p-1 bg-zinc-100 dark:bg-zinc-800">
+            <button type="button" onClick={onPunctuationToggle} className={btnClass(punctuation)}>
+              <IconAt size={14} />
+              punctuation
+            </button>
+            <button type="button" onClick={onNumbersToggle} className={btnClass(numbers)}>
+              <IconNumber size={14} />
+              numbers
+            </button>
+            <div className="h-4 w-px bg-border" />
+            <button type="button" onClick={() => onDifficultyToggle("easy")} className={btnClass(difficulty === "easy")}>
+              <IconFeather size={14} />
+              easy
+            </button>
+            <button type="button" onClick={() => onDifficultyToggle("hard")} className={btnClass(difficulty === "hard")}>
+              <IconFlame size={14} />
+              hard
+            </button>
+          </div>
+
+          <div className="hidden h-4 w-px bg-border sm:block" />
+
+          {/* Mode tabs */}
+          <Tabs value={mode} onValueChange={(v) => onModeChange(v as TestMode)} className="flex items-center">
+            <TabsList>
+              {([
+                { value: "time",   icon: IconClock,    label: "time"   },
+                { value: "words",  icon: IconLetterA,  label: "words"  },
+                { value: "quote",  icon: IconQuote,    label: "quote"  },
+                { value: "zen",    icon: IconMountain, label: "zen"    },
+                { value: "custom", icon: IconTool,     label: "custom" },
+              ] as const).map(({ value, icon: Icon, label }) => (
+                <TabsTrigger key={value} value={value} className="gap-1.5 px-3 text-xs cursor-pointer">
+                  <Icon size={13} />
+                  {label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          {mode !== "zen" && (
+            <>
+              <div className="hidden h-4 w-px bg-border sm:block" />
+
+              {mode === "words" ? (
+                <Tabs value={String(wordOption)} onValueChange={(v) => onWordOptionChange(Number(v) as WordOption)} className="flex items-center">
+                  <TabsList>
+                    {[10, 25, 50, 100].map((w) => (
+                      <TabsTrigger key={w} value={String(w)} className="px-3 text-xs cursor-pointer">{w}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              ) : mode === "quote" ? (
+                <Tabs value={quoteLength} onValueChange={(v) => onQuoteLengthChange(v as QuoteLength)} className="flex items-center">
+                  <TabsList>
+                    {(["short", "medium", "long"] as QuoteLength[]).map((q) => (
+                      <TabsTrigger key={q} value={q} className="px-3 text-xs cursor-pointer">{q}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              ) : mode === "custom" ? (
+                <div className="bg-muted inline-flex h-9 items-center justify-center rounded-lg p-[3px]">
+                  <CustomTextDialog
+                    value={customText}
+                    onSave={onCustomTextChange}
+                    trigger={
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 rounded-md px-3 h-full text-xs font-medium text-foreground bg-background dark:bg-input/30 shadow-sm transition-colors focus-visible:outline-none cursor-pointer"
+                      >
+                        <IconPencil size={13} />
+                        change
+                      </button>
+                    }
+                  />
+                </div>
+              ) : (
+                <Tabs value={String(timeOption)} onValueChange={(v) => onTimeOptionChange(Number(v) as TimeOption)} className="flex items-center">
+                  <TabsList>
+                    {[15, 30, 60, 120].map((t) => (
+                      <TabsTrigger key={t} value={String(t)} className="px-3 text-xs cursor-pointer">{t}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
+
+              <div className="hidden h-4 w-px bg-border sm:block" />
+            </>
+          )}
+        </div>
+
+        {/* Mobile / tablet button */}
+        <div className="flex lg:hidden items-center justify-center">
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-border bg-zinc-100 px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground dark:bg-zinc-800 cursor-pointer"
+          >
+            <IconAdjustments size={16} />
+            Test Settings
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Mobile: bottom drawer */}
+      {!isTablet && (
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerContent>
+            <DrawerHeader className="pb-0">
+              <DrawerTitle className="flex items-center gap-2 text-base">
+                <IconAdjustments size={16} />
+                Test Settings
+              </DrawerTitle>
+            </DrawerHeader>
+            {settingsContent}
+          </DrawerContent>
+        </Drawer>
+      )}
+
+      {/* Tablet: centered dialog */}
+      {isTablet && (
+        <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DialogContent
+            className={cn(
+              "max-w-lg sm:max-w-xl p-0 overflow-hidden",
+              "duration-300 ease-out",
+              "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2",
+              "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:slide-out-to-bottom-2",
+            )}
+          >
+            <DialogHeader className="px-4 pt-4 pb-0">
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <IconAdjustments size={16} />
+                Test Settings
+              </DialogTitle>
+            </DialogHeader>
+            <div className="max-h-[75dvh] overflow-y-auto">
+              {settingsContent}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
