@@ -362,6 +362,7 @@ export function TestControls({
       {isTablet && (
         <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DialogContent
+            showCloseButton={false}
             className={cn(
               "max-w-lg sm:max-w-xl p-0 overflow-hidden",
               "duration-300 ease-out",
