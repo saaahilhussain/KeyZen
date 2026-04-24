@@ -43,6 +43,7 @@ export function useShikiTokens(
 
   useEffect(() => {
     if (!enabled || words.length === 0 || !lang) {
+      prevKey.current = "";
       setColorMap([]);
       return;
     }
