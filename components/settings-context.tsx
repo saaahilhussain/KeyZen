@@ -4,7 +4,7 @@ import { createContext, useContext, useState, type ReactNode, } from "react";
 import { useMountEffect } from "@/hooks/use-mount-effect";
 import { syncKeyZenFavicon } from "@/lib/favicon-client";
 
-export type SoundPack = | "default" | "cherrymx-black-pbt" | "cherrymx-blue-pbt" | "cherrymx-brown-pbt" | "cherrymx-red-pbt" | "mx-speed-silver" | "eg-oreo";
+export type SoundPack = | "default" | "cherrymx-black-pbt" | "cherrymx-blue-pbt" | "cherrymx-brown-pbt" | "cherrymx-red-pbt" | "mx-speed-silver" | "eg-oreo" | "topre-purple";
 
 export interface SoundPackOption {
   id: SoundPack;
@@ -22,6 +22,7 @@ export const SOUND_PACKS: SoundPackOption[] = [
   { id: "cherrymx-red-pbt",   label: "Cherry MX Red",   url: "/sounds/cherrymx-red-pbt/sound.ogg",   configUrl: "/sounds/cherrymx-red-pbt/config.json" },
   { id: "mx-speed-silver",    label: "MX Speed Silver", url: "/sounds/mx-speed-silver/mx-speed-silver-1.wav", configUrl: "/sounds/mx-speed-silver/config.json" },
   { id: "eg-oreo",            label: "EG Oreo",         url: "/sounds/eg-oreo/oreo.ogg",                      configUrl: "/sounds/eg-oreo/config.json" },
+  { id: "topre-purple",       label: "Topre Purple",    url: "/sounds/topre-purple-hybrid-pbt/sound.ogg",      configUrl: "/sounds/topre-purple-hybrid-pbt/config.json" },
 ];
 
 export type AccentColor = | "teal" | "red" | "amber" | "purple" | "green" | "rose" | "blue" | "orange" | "cyan" | "pink" | "indigo" | "lime" | "violet" | "lightgreen" | "sky" | "coral" | "mint" | "gold" | "lavender";
