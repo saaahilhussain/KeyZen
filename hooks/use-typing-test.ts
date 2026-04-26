@@ -716,6 +716,9 @@ export function useTypingTest({
 
   const handleFocus = () => {
     if (pauseRefocusRef.current) return;
+    // Don't steal focus from Monaco or any other dialog-hosted input
+    const active = document.activeElement;
+    if (active && active.closest('[role="dialog"], [data-radix-dialog-content]')) return;
     inputRef.current?.focus();
   };
 

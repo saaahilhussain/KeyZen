@@ -45,6 +45,7 @@ const MONACO_LANG_MAP: Record<string, string> = {
   python: "python",
   go: "go",
   rust: "rust",
+  cpp: "cpp",
   c: "c",
   lua: "lua",
   shell: "shell",
@@ -235,7 +236,10 @@ export function CustomTextDialog({
           "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2",
           "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:slide-out-to-bottom-2",
         )}
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={(e) => {
+          // Let Monaco grab focus naturally; only prevent if not in code mode
+          if (!isCodeMode) e.preventDefault();
+        }}
       >
         <div className="flex flex-col md:grid md:grid-cols-[1.6fr_1fr] md:h-full md:overflow-hidden">
           {/* Left column: editor */}
