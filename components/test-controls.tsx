@@ -592,7 +592,7 @@ export function TestControls({
         </div>
 
         {/* Mobile / tablet button */}
-        <div className="flex fixed left-0 right-0 lg:hidden items-center justify-center mb-5">
+        <div className="flex fixed z-50 left-0 right-0 lg:hidden items-center justify-center mb-5">
           <button
             type="button"
             onClick={(e) => {
