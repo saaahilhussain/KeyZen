@@ -111,3 +111,51 @@ Audio uses the **Web Audio API**. Many browsers only unlock audio after a **user
 ## Contributing
 
 Issues and pull requests are welcome on [GitHub](https://github.com/shivabhattacharjee/KeyZen).
+
+## Contributors
+
+Thanks to everyone who has contributed to KeyZen!
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/ShivaBhattacharjee">
+        <img src="https://avatars.githubusercontent.com/u/95211406?v=4" width="80" height="80" style="border-radius:50%" alt="ShivaBhattacharjee" /><br />
+        <sub><b>ShivaBhattacharjee</b></sub>
+      </a><br />
+      <sub>115 commits</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/priyanshuwq">
+        <img src="https://avatars.githubusercontent.com/u/105375708?v=4" width="80" height="80" style="border-radius:50%" alt="priyanshuwq" /><br />
+        <sub><b>priyanshuwq</b></sub>
+      </a><br />
+      <sub>4 commits</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/RusilKoirala">
+        <img src="https://avatars.githubusercontent.com/u/209594643?v=4" width="80" height="80" style="border-radius:50%" alt="RusilKoirala" /><br />
+        <sub><b>RusilKoirala</b></sub>
+      </a><br />
+      <sub>1 commit</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/saaahilhussain">
+        <img src="https://avatars.githubusercontent.com/u/140058338?v=4" width="80" height="80" style="border-radius:50%" alt="saaahilhussain" /><br />
+        <sub><b>saaahilhussain</b></sub>
+      </a><br />
+      <sub>1 commit</sub>
+    </td>
+  </tr>
+</table>
+
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=ShivaBhattacharjee%2FKeyZen&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=ShivaBhattacharjee/KeyZen&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=ShivaBhattacharjee/KeyZen&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=ShivaBhattacharjee/KeyZen&type=date&legend=top-left" />
+ </picture>
+</a>
