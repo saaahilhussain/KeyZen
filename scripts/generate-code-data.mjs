@@ -18,6 +18,7 @@ const LANG_NAMES = {
   python: "Python",
   typescript: "TypeScript",
   rust: "Rust",
+  cpp: "C++",
   c: "C",
 };
 
@@ -30,6 +31,7 @@ const LANG_EXT = {
   python: "py",
   typescript: "ts",
   rust: "rs",
+  cpp: "cpp",
   c: "c",
 };
 

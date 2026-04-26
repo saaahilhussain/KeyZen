@@ -12,6 +12,7 @@ const LANG_MAP: Record<string, string> = {
   python: "python",
   typescript: "typescript",
   rust: "rust",
+  cpp: "cpp",
   c: "c",
 };
 

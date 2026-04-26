@@ -8,8 +8,8 @@ import { motion, AnimatePresence } from "motion/react"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useSettings, ACCENT_COLORS, FONT_OPTIONS, FONT_SIZES, SOUND_PACKS, } from "@/components/settings-context"
 import { NextThemeSwitcher } from "@/components/kibo-ui/theme-switcher"
-import { Command, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover"
+
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { Language } from "@/lib/languages"
@@ -29,6 +29,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const [fontPickerOpen, setFontPickerOpen] = useState(false)
   const [fontSearch, setFontSearch] = useState("")
   const [langPickerOpen, setLangPickerOpen] = useState(false)
+  const [langSearch, setLangSearch] = useState("")
   const [languages, setLanguages] = useState<Language[]>([])
   const [cacheInfo, setCacheInfo] = useState<string | null>(null)
 
@@ -224,107 +225,97 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
               <section>
                 <SectionLabel>Font</SectionLabel>
-                <Popover
-                  open={fontPickerOpen}
-                  onOpenChange={(v) => {
-                    setFontPickerOpen(v)
-                    if (!v) setFontSearch("")
-                  }}
+                {/* Inline accordion — avoids Popover portal which vaul intercepts on mobile */}
+                <button
+                  type="button"
+                  onClick={() => { setFontPickerOpen((v) => !v); setFontSearch("") }}
+                  className={cn(
+                    "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs transition-colors outline-none",
+                    "hover:bg-muted/50"
+                  )}
                 >
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      aria-expanded={fontPickerOpen}
-                      className={cn(
-                        "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs transition-colors outline-none",
-                        "hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                      )}
+                  <span className="min-w-0 truncate" style={{ fontFamily: selectedFont?.cssFamily }}>
+                    {selectedFont?.label ?? font}
+                  </span>
+                  <CaretDownIcon
+                    className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", fontPickerOpen && "rotate-180")}
+                    weight="bold"
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {fontPickerOpen && (
+                    <motion.div
+                      key="font-list"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
-                      <span
-                        className="min-w-0 truncate"
-                        style={{ fontFamily: selectedFont?.cssFamily }}
-                      >
-                        {selectedFont?.label ?? font}
-                      </span>
-                      <CaretDownIcon
-                        className="size-4 shrink-0 text-muted-foreground"
-                        weight="bold"
-                      />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="gap-0 p-0"
-                    align="end"
-                    side="bottom"
-                    sideOffset={8}
-                    style={{ width: "var(--radix-popover-trigger-width)" }}
-                  >
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Search fonts..."
-                        value={fontSearch}
-                        onValueChange={setFontSearch}
-                        className="h-8 text-xs"
-                      />
-                      <CommandList className="max-h-64">
-                        {(() => {
-                          const q = fontSearch.trim().toLowerCase()
-                          const filtered = q
-                            ? FONT_OPTIONS.filter(
-                                (f) =>
-                                  f.label.toLowerCase().includes(q) ||
-                                  (f.tag ?? "").toLowerCase().includes(q)
-                              )
-                            : null
+                      <div className="mt-1 rounded-lg border border-border bg-background">
+                        <div className="border-b border-border px-2 py-1.5">
+                          <input
+                            type="text"
+                            placeholder="Search fonts..."
+                            value={fontSearch}
+                            onChange={(e) => setFontSearch(e.target.value)}
+                            className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+                            autoFocus={false}
+                          />
+                        </div>
+                        <div className="flex flex-col p-1">
+                          {(() => {
+                            const q = fontSearch.trim().toLowerCase()
+                            const filtered = q
+                              ? FONT_OPTIONS.filter(
+                                  (f) =>
+                                    f.label.toLowerCase().includes(q) ||
+                                    (f.tag ?? "").toLowerCase().includes(q)
+                                )
+                              : null
 
-                          const renderItem = (f: (typeof FONT_OPTIONS)[number]) => (
-                            <CommandItem
-                              key={f.id}
-                              value={f.id}
-                              data-checked={font === f.id ? true : undefined}
-                              onSelect={() => {
-                                setFont(f.id)
-                                setFontPickerOpen(false)
-                                setFontSearch("")
-                              }}
-                            >
-                              <span style={{ fontFamily: f.cssFamily }}>
-                                {f.label}
-                              </span>
-                            </CommandItem>
-                          )
-
-                          if (filtered) {
-                            return filtered.length > 0 ? (
-                              <CommandGroup>{filtered.map(renderItem)}</CommandGroup>
-                            ) : (
-                              <p className="py-4 text-center text-xs text-muted-foreground">
-                                No fonts found
-                              </p>
+                            const renderItem = (f: (typeof FONT_OPTIONS)[number]) => (
+                              <button
+                                type="button"
+                                key={f.id}
+                                onClick={() => { setFont(f.id); setFontPickerOpen(false); setFontSearch("") }}
+                                className={cn(
+                                  "flex w-full items-center rounded-md px-2 py-1.5 text-xs transition-colors text-left",
+                                  font === f.id
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                              >
+                                <span style={{ fontFamily: f.cssFamily }}>{f.label}</span>
+                              </button>
                             )
-                          }
 
-                          return (
-                            <>
-                              <CommandGroup heading="Mono">
+                            if (filtered) {
+                              return filtered.length > 0 ? (
+                                filtered.map(renderItem)
+                              ) : (
+                                <p className="py-4 text-center text-xs text-muted-foreground">No fonts found</p>
+                              )
+                            }
+
+                            return (
+                              <>
+                                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Mono</p>
                                 {FONT_OPTIONS.filter((f) => f.tag === "mono").map(renderItem)}
-                              </CommandGroup>
-                              <CommandGroup heading="Display">
+                                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Display</p>
                                 {FONT_OPTIONS.filter((f) => f.tag === "display").map(renderItem)}
-                              </CommandGroup>
-                              <CommandGroup heading="Serif">
+                                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Serif</p>
                                 {FONT_OPTIONS.filter((f) => f.tag === "serif").map(renderItem)}
-                              </CommandGroup>
-                              <CommandGroup heading="Handwriting">
+                                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Handwriting</p>
                                 {FONT_OPTIONS.filter((f) => f.tag === "handwriting").map(renderItem)}
-                              </CommandGroup>
-                            </>
-                          )
-                        })()}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                              </>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </section>
 
               <section>
@@ -352,56 +343,73 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
               <section>
                 <SectionLabel>Language</SectionLabel>
-                <Popover open={langPickerOpen} onOpenChange={setLangPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      aria-expanded={langPickerOpen}
-                      className={cn(
-                        "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs transition-colors outline-none",
-                        "hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                      )}
+                {/* Inline accordion — avoids Popover portal which vaul intercepts on mobile */}
+                <button
+                  type="button"
+                  onClick={() => { setLangPickerOpen((v) => !v); setLangSearch("") }}
+                  className={cn(
+                    "mt-3 flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 text-left text-xs transition-colors outline-none",
+                    "hover:bg-muted/50"
+                  )}
+                >
+                  <span className="min-w-0 truncate">{selectedLang?.name ?? language}</span>
+                  <CaretDownIcon
+                    className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", langPickerOpen && "rotate-180")}
+                    weight="bold"
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {langPickerOpen && (
+                    <motion.div
+                      key="lang-list"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
-                      <span className="min-w-0 truncate">
-                        {selectedLang?.name ?? language}
-                      </span>
-                      <CaretDownIcon
-                        className="size-4 shrink-0 text-muted-foreground"
-                        weight="bold"
-                      />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="gap-0 p-0"
-                    align="end"
-                    side="bottom"
-                    sideOffset={8}
-                    style={{ width: "var(--radix-popover-trigger-width)" }}
-                  >
-                    <Command>
-                      <CommandList>
-                        <CommandGroup>
-                          {languages.map((l) => (
-                            <CommandItem
-                              key={l.code}
-                              value={l.code}
-                              keywords={[l.name]}
-                              data-checked={
-                                language === l.code ? true : undefined
-                              }
-                              onSelect={() => {
-                                setLanguage(l.code)
-                                setLangPickerOpen(false)
-                              }}
-                            >
-                              {l.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                      <div className="mt-1 rounded-lg border border-border bg-background">
+                        <div className="border-b border-border px-2 py-1.5">
+                          <input
+                            type="text"
+                            placeholder="Search languages..."
+                            value={langSearch}
+                            onChange={(e) => setLangSearch(e.target.value)}
+                            className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+                            autoFocus={false}
+                          />
+                        </div>
+                        <div className="flex flex-col p-1">
+                          {(() => {
+                            const q = langSearch.trim().toLowerCase()
+                            const filtered = q
+                              ? languages.filter((l) => l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q))
+                              : languages
+                            return filtered.length > 0 ? (
+                              filtered.map((l) => (
+                                <button
+                                  type="button"
+                                  key={l.code}
+                                  onClick={() => { setLanguage(l.code); setLangPickerOpen(false); setLangSearch("") }}
+                                  className={cn(
+                                    "flex w-full items-center rounded-md px-2 py-1.5 text-xs text-left transition-colors",
+                                    language === l.code
+                                      ? "bg-primary/10 text-primary"
+                                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  )}
+                                >
+                                  {l.name}
+                                </button>
+                              ))
+                            ) : (
+                              <p className="py-4 text-center text-xs text-muted-foreground">No languages found</p>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </section>
 
               <section>
