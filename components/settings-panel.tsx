@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import { useSettings, ACCENT_COLORS, FONT_OPTIONS, FONT_SIZES, SOUND_PACKS, } from "@/components/settings-context"
 import { NextThemeSwitcher } from "@/components/kibo-ui/theme-switcher"
-import { Command, CommandGroup, CommandItem, CommandList, } from "@/components/ui/command"
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
@@ -27,6 +27,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const isRTL = isRTLLanguage(language)
   const [isMobile, setIsMobile] = useState(false)
   const [fontPickerOpen, setFontPickerOpen] = useState(false)
+  const [fontSearch, setFontSearch] = useState("")
   const [langPickerOpen, setLangPickerOpen] = useState(false)
   const [languages, setLanguages] = useState<Language[]>([])
   const [cacheInfo, setCacheInfo] = useState<string | null>(null)
@@ -223,7 +224,13 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
               <section>
                 <SectionLabel>Font</SectionLabel>
-                <Popover open={fontPickerOpen} onOpenChange={setFontPickerOpen}>
+                <Popover
+                  open={fontPickerOpen}
+                  onOpenChange={(v) => {
+                    setFontPickerOpen(v)
+                    if (!v) setFontSearch("")
+                  }}
+                >
                   <PopoverTrigger asChild>
                     <button
                       type="button"
@@ -253,45 +260,67 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                     style={{ width: "var(--radix-popover-trigger-width)" }}
                   >
                     <Command shouldFilter={false}>
-                      <CommandList>
-                        <CommandGroup heading="Mono">
-                          {FONT_OPTIONS.filter((f) => f.tag === "mono").map(
-                            (f) => (
-                              <CommandItem
-                                key={f.id}
-                                value={f.id}
-                                data-checked={font === f.id ? true : undefined}
-                                onSelect={() => {
-                                  setFont(f.id)
-                                  setFontPickerOpen(false)
-                                }}
-                              >
-                                <span style={{ fontFamily: f.cssFamily }}>
-                                  {f.label}
-                                </span>
-                              </CommandItem>
+                      <CommandInput
+                        placeholder="Search fonts..."
+                        value={fontSearch}
+                        onValueChange={setFontSearch}
+                        className="h-8 text-xs"
+                      />
+                      <CommandList className="max-h-64">
+                        {(() => {
+                          const q = fontSearch.trim().toLowerCase()
+                          const filtered = q
+                            ? FONT_OPTIONS.filter(
+                                (f) =>
+                                  f.label.toLowerCase().includes(q) ||
+                                  (f.tag ?? "").toLowerCase().includes(q)
+                              )
+                            : null
+
+                          const renderItem = (f: (typeof FONT_OPTIONS)[number]) => (
+                            <CommandItem
+                              key={f.id}
+                              value={f.id}
+                              data-checked={font === f.id ? true : undefined}
+                              onSelect={() => {
+                                setFont(f.id)
+                                setFontPickerOpen(false)
+                                setFontSearch("")
+                              }}
+                            >
+                              <span style={{ fontFamily: f.cssFamily }}>
+                                {f.label}
+                              </span>
+                            </CommandItem>
+                          )
+
+                          if (filtered) {
+                            return filtered.length > 0 ? (
+                              <CommandGroup>{filtered.map(renderItem)}</CommandGroup>
+                            ) : (
+                              <p className="py-4 text-center text-xs text-muted-foreground">
+                                No fonts found
+                              </p>
                             )
-                          )}
-                        </CommandGroup>
-                        <CommandGroup heading="Display">
-                          {FONT_OPTIONS.filter((f) => f.tag === "display").map(
-                            (f) => (
-                              <CommandItem
-                                key={f.id}
-                                value={f.id}
-                                data-checked={font === f.id ? true : undefined}
-                                onSelect={() => {
-                                  setFont(f.id)
-                                  setFontPickerOpen(false)
-                                }}
-                              >
-                                <span style={{ fontFamily: f.cssFamily }}>
-                                  {f.label}
-                                </span>
-                              </CommandItem>
-                            )
-                          )}
-                        </CommandGroup>
+                          }
+
+                          return (
+                            <>
+                              <CommandGroup heading="Mono">
+                                {FONT_OPTIONS.filter((f) => f.tag === "mono").map(renderItem)}
+                              </CommandGroup>
+                              <CommandGroup heading="Display">
+                                {FONT_OPTIONS.filter((f) => f.tag === "display").map(renderItem)}
+                              </CommandGroup>
+                              <CommandGroup heading="Serif">
+                                {FONT_OPTIONS.filter((f) => f.tag === "serif").map(renderItem)}
+                              </CommandGroup>
+                              <CommandGroup heading="Handwriting">
+                                {FONT_OPTIONS.filter((f) => f.tag === "handwriting").map(renderItem)}
+                              </CommandGroup>
+                            </>
+                          )
+                        })()}
                       </CommandList>
                     </Command>
                   </PopoverContent>
