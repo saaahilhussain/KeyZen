@@ -228,16 +228,18 @@ export function CustomTextDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
         className={cn(
-          "sm:max-w-[860px] w-[min(860px,calc(100vw-2rem))] h-[min(75dvh,560px)] p-0 overflow-hidden",
+          "sm:max-w-[860px] w-[min(860px,calc(100vw-2rem))]",
+          "max-h-[90dvh] md:h-[min(75dvh,560px)]",
+          "p-0 overflow-y-auto md:overflow-hidden",
           "duration-300 ease-out",
           "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2",
           "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:slide-out-to-bottom-2",
         )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="flex flex-col h-full md:grid md:grid-cols-[1.6fr_1fr]">
-          {/* Left column: editor — fills full height */}
-          <div className="flex flex-col gap-3 border-b border-border p-5 md:border-r md:border-b-0 min-h-0 overflow-hidden">
+        <div className="flex flex-col md:grid md:grid-cols-[1.6fr_1fr] md:h-full md:overflow-hidden">
+          {/* Left column: editor */}
+          <div className="flex flex-col gap-3 border-b border-border p-5 md:border-r md:border-b-0 md:min-h-0 md:overflow-hidden">
             <DialogHeader className="gap-1">
               <DialogTitle className="font-(family-name:--font-doto) text-2xl font-bold tracking-wide">
                 {isCodeMode ? "Custom Code" : "Custom Text"}
@@ -249,9 +251,26 @@ export function CustomTextDialog({
               </DialogDescription>
             </DialogHeader>
 
+            {/* Upload button — mobile only, shown above the editor */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="md:hidden group flex items-center gap-3 rounded-md border border-dashed border-border px-3 py-2.5 text-left text-xs text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground"
+            >
+              <IconUpload size={16} stroke={1.5} className="shrink-0" />
+              <span className="flex flex-col leading-tight">
+                <span className="font-medium text-foreground">
+                  {isCodeMode ? "Upload code file" : "Upload .txt"}
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {isCodeMode ? ".js .ts .py .go .rs .c .lua .sh .dart" : "or drop one onto the editor"}
+                </span>
+              </span>
+            </button>
+
             {isCodeMode && selectedLang ? (
-              /* Monaco editor — flex-1 fills remaining column height */
-              <div className="flex-1 min-h-0 overflow-hidden rounded-md border border-border">
+              /* Monaco editor — explicit height on mobile, flex-1 on desktop */
+              <div className="h-[280px] md:h-auto md:flex-1 md:min-h-0 overflow-hidden rounded-md border border-border">
                 <MonacoEditor
                   height="100%"
                   language={monacoLang}
@@ -276,11 +295,11 @@ export function CustomTextDialog({
                 />
               </div>
             ) : (
-              /* Plain textarea — flex-1 fills remaining column height */
+              /* Plain textarea — explicit height on mobile, flex-1 on desktop */
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className="relative flex-1 min-h-0"
+                className="relative h-[260px] md:h-auto md:flex-1 md:min-h-0"
               >
                 <textarea
                   value={draft}
@@ -322,8 +341,8 @@ export function CustomTextDialog({
           </div>
 
           {/* Right column: actions */}
-          <div className="flex flex-col gap-4 p-5 overflow-y-auto">
-            <section className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4 p-5 md:overflow-y-auto">
+            <section className="hidden md:flex flex-col gap-2">
               <h3 className="font-(family-name:--font-doto) text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Source
               </h3>
@@ -358,7 +377,7 @@ export function CustomTextDialog({
               />
             </section>
 
-            <div className="h-px bg-border" />
+            <div className="hidden md:block h-px bg-border" />
 
             {/* Code mode toggle */}
             <section className="flex flex-col gap-3">

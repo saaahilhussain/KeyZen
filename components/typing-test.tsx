@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence, motion, LayoutGroup } from "motion/react"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { IconLock, IconPointer, IconRefresh } from "@tabler/icons-react"
 import { ResultsScreen } from "@/components/results-screen"
 import { TestControls, type CodeManifest } from "@/components/test-controls"
@@ -114,11 +114,54 @@ export function TypingTest(props: TypingTestProps) {
     props.onModeChange?.(next)
   }, [onModeChangeInternal, props])
 
+  const isCodeRendering = (mode === "code" || (mode === "custom" && codeLines.length > 0))
+
+  // Track which code line the cursor is currently on so we can detect line changes
+  const activeLineRef = useRef<number>(-1)
+
+  // Auto-scroll horizontally in code mode to keep the cursor visible
+  useEffect(() => {
+    if (!isCodeRendering) return
+    const container = wordsContainerRef.current
+    if (!container) return
+
+    // Compute the active line index from codeLines + wordIndex
+    let activeLine = 0
+    let wCount = 0
+    for (let li = 0; li < codeLines.length; li++) {
+      wCount += codeLines[li]
+      if (wordIndex < wCount) { activeLine = li; break }
+    }
+
+    // If the line changed, snap scrollLeft back to 0 immediately
+    if (activeLine !== activeLineRef.current) {
+      activeLineRef.current = activeLine
+      container.scrollLeft = 0
+      return
+    }
+
+    requestAnimationFrame(() => {
+      const cursor = container.querySelector<HTMLElement>(".typing-cursor")
+      if (!cursor) return
+      const containerRect = container.getBoundingClientRect()
+      const cursorRect = cursor.getBoundingClientRect()
+      const cursorLeft = cursorRect.left - containerRect.left + container.scrollLeft
+      const cursorRight = cursorRect.right - containerRect.left + container.scrollLeft
+      const viewLeft = container.scrollLeft
+      const viewRight = container.scrollLeft + containerRect.width
+      const pad = 80
+      if (cursorRight > viewRight - pad) {
+        container.scrollLeft = cursorRight - containerRect.width + pad
+      } else if (cursorLeft < viewLeft + pad) {
+        container.scrollLeft = Math.max(0, cursorLeft - pad)
+      }
+    })
+  }, [typed, wordIndex, isCodeRendering, wordsContainerRef, codeLines])
+
   const rawCode = mode === "code" && codeLanguage && codeChapter
     ? getCodeContent(codeLanguage, codeChapter)
     : undefined
 
-  const isCodeRendering = (mode === "code" || (mode === "custom" && codeLines.length > 0))
   const shikiLang = mode === "custom" ? customCodeLanguage : codeLanguage
 
   const shikiColors = useShikiTokens(
@@ -263,7 +306,8 @@ export function TypingTest(props: TypingTestProps) {
         <div
           ref={wordsContainerRef}
           className={cn(
-            "relative w-full overflow-hidden leading-relaxed",
+            "relative w-full leading-relaxed",
+            isCodeRendering ? "overflow-x-auto overflow-y-hidden" : "overflow-hidden",
             "h-[7.8rem]",
             isActivelyTyping && "is-typing"
           )}
