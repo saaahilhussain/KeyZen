@@ -395,7 +395,7 @@ export function TestControls({
                 </Tabs>
               )}
 
-              <div className="hidden h-4 w-px shrink-0 bg-border sm:block" />
+           
             </>
           )}
         </div>
