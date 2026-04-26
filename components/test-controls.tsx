@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useAppChrome } from "@/components/app-chrome";
 import { motion, AnimatePresence } from "motion/react";
 import { IconAt, IconClock, IconLetterA, IconQuote, IconMountain, IconNumber, IconFeather, IconFlame, IconTool, IconPencil, IconAdjustments, IconX, IconCode, } from "@tabler/icons-react";
@@ -46,7 +46,7 @@ export interface TestControlsProps {
   onRestart: () => void;
 }
 
-export function TestControls({
+export const TestControls = memo(function TestControls({
   mode, timeOption, wordOption, quoteLength,
   punctuation, numbers, difficulty, customText,
   codeLanguage, codeChapter, codeManifest,
@@ -755,4 +755,4 @@ export function TestControls({
       )}
     </>
   );
-}
+});

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { useMountEffect } from "@/hooks/use-mount-effect"
 import { cn } from "@/lib/utils"
@@ -31,14 +31,37 @@ export default function Page() {
         }
     })
 
+    const typingActiveRef = useRef(false)
     const handleTypingActiveChange = useCallback(
         (active: boolean) => {
+            if (typingActiveRef.current === active) return
+            typingActiveRef.current = active
             setTypingActive(active)
         },
         [setTypingActive],
     )
 
-    const handleKeyHighlight = useCallback((_key: string | null) => { }, [])
+    // Guard callbacks so they only trigger Page re-renders when values actually change
+    const finishedRef = useRef(isFinished)
+    const handleFinished = useCallback((finished: boolean) => {
+        if (finishedRef.current === finished) return
+        finishedRef.current = finished
+        setIsFinished(finished)
+    }, [])
+
+    const focusedRef = useRef(typingFocused)
+    const handleFocusChange = useCallback((focused: boolean) => {
+        if (focusedRef.current === focused) return
+        focusedRef.current = focused
+        setTypingFocused(focused)
+    }, [])
+
+    const modeRef = useRef(mode)
+    const handleModeChange = useCallback((m: string) => {
+        if (modeRef.current === m) return
+        modeRef.current = m
+        setMode(m)
+    }, [])
 
     const showFooter = !isFinished && showKeyboard
 
@@ -83,11 +106,10 @@ export default function Page() {
                 >
                     <TypingTest
                         key={restartKey}
-                        onKeyHighlight={handleKeyHighlight}
-                        onFinished={setIsFinished}
+                        onFinished={handleFinished}
                         onTypingActiveChange={handleTypingActiveChange}
-                        onFocusChange={setTypingFocused}
-                        onModeChange={setMode}
+                        onFocusChange={handleFocusChange}
+                        onModeChange={handleModeChange}
                         pauseTypingInputRefocus={settingsOpen || testSettingsOpen}
                     />
                 </main>

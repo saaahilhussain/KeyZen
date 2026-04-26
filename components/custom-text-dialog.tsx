@@ -201,7 +201,6 @@ export function CustomTextDialog({
       return;
     }
     onSave(cleaned, isCodeMode ? selectedLang : undefined);
-    toast.success("custom text saved");
     setOpen(false);
   }
 
@@ -239,6 +238,14 @@ export function CustomTextDialog({
         onOpenAutoFocus={(e) => {
           // Let Monaco grab focus naturally; only prevent if not in code mode
           if (!isCodeMode) e.preventDefault();
+        }}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          // Directly focus the typing input after dialog closes
+          const typingInput = document.querySelector<HTMLInputElement>(
+            'input[autocapitalize="none"][spellcheck="false"].absolute'
+          );
+          typingInput?.focus();
         }}
       >
         <div className="flex flex-col md:grid md:grid-cols-[1.6fr_1fr] md:h-full md:overflow-hidden">
