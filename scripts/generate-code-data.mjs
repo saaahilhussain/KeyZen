@@ -20,6 +20,7 @@ const LANG_NAMES = {
   rust: "Rust",
   cpp: "C++",
   c: "C",
+  java: "Java",
 };
 
 const LANG_EXT = {
@@ -33,6 +34,7 @@ const LANG_EXT = {
   rust: "rs",
   cpp: "cpp",
   c: "c",
+  java: "java",
 };
 
 async function main() {
