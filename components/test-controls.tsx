@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAppChrome } from "@/components/app-chrome";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { IconAt, IconClock, IconLetterA, IconQuote, IconMountain, IconNumber, IconFeather, IconFlame, IconTool, IconPencil, IconAdjustments, IconX, IconCode, } from "@tabler/icons-react";
 import { CustomTextDialog } from "@/components/custom-text-dialog";
 import type { QuoteLength } from "@/lib/quotes";
@@ -56,8 +56,13 @@ export function TestControls({
 }: TestControlsProps) {
   const [drawerOpen, setDrawerOpenState] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  // Desktop-bar Popovers
+  const [desktopLangOpen, setDesktopLangOpen] = useState(false);
+  const [desktopChapterOpen, setDesktopChapterOpen] = useState(false);
+  // Mobile/tablet drawer accordions
   const [langPickerOpen, setLangPickerOpen] = useState(false);
   const [chapterPickerOpen, setChapterPickerOpen] = useState(false);
+  const [langSearch, setLangSearch] = useState("");
   const { setTestSettingsOpen } = useAppChrome();
 
   const setDrawerOpen = (open: boolean) => {
@@ -95,27 +100,57 @@ export function TestControls({
 
   const codeSelectors = (
     <div className="bg-muted inline-flex h-9 items-center justify-center rounded-lg p-[3px]">
-      <Popover>
+      <Popover open={desktopLangOpen} onOpenChange={setDesktopLangOpen}>
         <PopoverTrigger asChild>
           <button className={codeSelectTriggerClass} data-state={codeLanguage ? "active" : "inactive"}>
             {Object.keys(codeManifest).length === 0 ? "Loading..." : codeLanguage && codeManifest[codeLanguage] ? codeManifest[codeLanguage].name : "Language"}
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-1.5 bg-zinc-100 dark:bg-zinc-800 border-border rounded-lg flex flex-col shadow-sm" align="center" sideOffset={8}>
-          {Object.values(codeManifest).map(lang => (
-            <button
-              type="button"
-              key={lang.code}
-              onClick={() => onCodeLanguageChange(lang.code)}
-              className={renderDropdownOptionClass(codeLanguage === lang.code)}
-            >
-              {lang.name}
-            </button>
-          ))}
+          <div className="px-1 pb-1.5 pt-1">
+            <input 
+              type="text" 
+              placeholder="Search language..." 
+              value={langSearch}
+              onChange={(e) => setLangSearch(e.target.value)}
+              className="w-full bg-zinc-200/50 dark:bg-zinc-700/50 text-foreground px-2.5 py-1.5 rounded min-w-[140px] text-xs outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground/70"
+              autoFocus
+            />
+          </div>
+          <div className="flex flex-col max-h-[300px] overflow-y-auto overflow-x-hidden pr-0.5 custom-scrollbar" style={{ scrollbarWidth: "thin" }}>
+            {Object.values(codeManifest)
+              .filter(lang => 
+                !langSearch || 
+                lang.name.toLowerCase().includes(langSearch.toLowerCase()) || 
+                lang.ext.toLowerCase().includes(langSearch.toLowerCase()) || 
+                lang.code.toLowerCase().includes(langSearch.toLowerCase())
+              )
+              .map(lang => (
+              <button
+                type="button"
+                key={lang.code}
+                onClick={() => {
+                  onCodeLanguageChange(lang.code);
+                  setDesktopLangOpen(false);
+                }}
+                className={renderDropdownOptionClass(codeLanguage === lang.code)}
+              >
+                {lang.name}
+              </button>
+            ))}
+            {Object.values(codeManifest).filter(lang => 
+              !langSearch || 
+              lang.name.toLowerCase().includes(langSearch.toLowerCase()) || 
+              lang.ext.toLowerCase().includes(langSearch.toLowerCase()) || 
+              lang.code.toLowerCase().includes(langSearch.toLowerCase())
+            ).length === 0 && (
+              <p className="py-4 text-center text-xs text-muted-foreground w-[140px]">No results</p>
+            )}
+          </div>
         </PopoverContent>
       </Popover>
 
-      <Popover>
+      <Popover open={desktopChapterOpen} onOpenChange={setDesktopChapterOpen}>
         <PopoverTrigger asChild>
           <button 
             className={codeSelectTriggerClass} 
@@ -125,12 +160,15 @@ export function TestControls({
             {codeChapter ? codeChapter.replace(/_/g, " ") : "Chapter"}
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-1.5 bg-zinc-100 dark:bg-zinc-800 border-border rounded-lg flex flex-col shadow-sm max-h-[300px] overflow-y-auto overflow-x-hidden" align="center" sideOffset={8} style={{ scrollbarWidth: "none" }}>
+        <PopoverContent className="w-auto p-1.5 bg-zinc-100 dark:bg-zinc-800 border-border rounded-lg flex flex-col shadow-sm max-h-[300px] overflow-y-auto overflow-x-hidden custom-scrollbar" align="center" sideOffset={8} style={{ scrollbarWidth: "thin" }}>
           {codeLanguage && codeManifest[codeLanguage]?.chapters.map(chap => (
             <button
               type="button"
               key={chap}
-              onClick={() => onCodeChapterChange(chap)}
+              onClick={() => {
+                onCodeChapterChange(chap);
+                setDesktopChapterOpen(false);
+              }}
               className={renderDropdownOptionClass(codeChapter === chap)}
             >
               {chap.replace(/_/g, " ")}
@@ -285,81 +323,110 @@ export function TestControls({
               />
             ) : mode === "code" ? (
               <div className="flex flex-col gap-2">
-                {/* Language picker */}
-                <Popover open={langPickerOpen} onOpenChange={setLangPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-zinc-100 dark:bg-zinc-800 px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground cursor-pointer"
+                {/* Language picker — inline accordion (Popover portals are intercepted by vaul on mobile) */}
+                <button
+                  type="button"
+                  onClick={() => { setLangPickerOpen((v) => !v); setLangSearch(""); }}
+                  className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-zinc-100 dark:bg-zinc-800 px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground cursor-pointer"
+                >
+                  <span className="truncate">
+                    {codeLanguage && codeManifest[codeLanguage] ? codeManifest[codeLanguage].name : "Select language"}
+                  </span>
+                  <CaretDownIcon
+                    className={cn("size-4 shrink-0 transition-transform duration-200", langPickerOpen && "rotate-180")}
+                    weight="bold"
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {langPickerOpen && (
+                    <motion.div
+                      key="lang-accordion"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
-                      <span className="truncate">
-                        {codeLanguage && codeManifest[codeLanguage] ? codeManifest[codeLanguage].name : "Select language"}
-                      </span>
-                      <CaretDownIcon className="size-4 shrink-0" weight="bold" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="p-1.5"
-                    align="start"
-                    sideOffset={6}
-                    style={{ width: "var(--radix-popover-trigger-width)" }}
-                  >
-                    <div
-                      className="flex max-h-52 flex-col gap-0.5 overflow-y-auto overscroll-contain"
-                      style={{ touchAction: "pan-y" }}
-                    >
-                      {Object.values(codeManifest).map((lang) => (
-                        <button
-                          type="button"
-                          key={lang.code}
-                          onClick={() => { onCodeLanguageChange(lang.code); setLangPickerOpen(false); }}
-                          className={renderDropdownOptionClass(codeLanguage === lang.code)}
-                        >
-                          {lang.name}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                      <div className="rounded-xl border border-border bg-zinc-100 dark:bg-zinc-800">
+                        <div className="px-2 py-1.5 border-b border-border">
+                          <input
+                            type="text"
+                            placeholder="Search language..."
+                            value={langSearch}
+                            onChange={(e) => setLangSearch(e.target.value)}
+                            className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/70"
+                            autoFocus={false}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-0.5 p-1.5">
+                          {(() => {
+                            const filtered = Object.values(codeManifest).filter(lang =>
+                              !langSearch ||
+                              lang.name.toLowerCase().includes(langSearch.toLowerCase()) ||
+                              lang.ext.toLowerCase().includes(langSearch.toLowerCase()) ||
+                              lang.code.toLowerCase().includes(langSearch.toLowerCase())
+                            )
+                            return filtered.length > 0 ? (
+                              filtered.map((lang) => (
+                                <button
+                                  type="button"
+                                  key={lang.code}
+                                  onClick={() => { onCodeLanguageChange(lang.code); setLangPickerOpen(false); setLangSearch(""); }}
+                                  className={renderDropdownOptionClass(codeLanguage === lang.code)}
+                                >
+                                  {lang.name}
+                                </button>
+                              ))
+                            ) : (
+                              <p className="py-3 text-center text-xs text-muted-foreground">No results</p>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                {/* Chapter picker */}
-                <Popover open={chapterPickerOpen} onOpenChange={setChapterPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      disabled={!codeLanguage || !codeManifest[codeLanguage]}
-                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-zinc-100 dark:bg-zinc-800 px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                {/* Chapter picker — inline accordion */}
+                <button
+                  type="button"
+                  disabled={!codeLanguage || !codeManifest[codeLanguage]}
+                  onClick={() => setChapterPickerOpen((v) => !v)}
+                  className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-zinc-100 dark:bg-zinc-800 px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="truncate">
+                    {codeChapter ? codeChapter.replace(/_/g, " ") : "Select chapter"}
+                  </span>
+                  <CaretDownIcon
+                    className={cn("size-4 shrink-0 transition-transform duration-200", chapterPickerOpen && "rotate-180")}
+                    weight="bold"
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {chapterPickerOpen && codeLanguage && codeManifest[codeLanguage] && (
+                    <motion.div
+                      key="chapter-accordion"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
-                      <span className="truncate">
-                        {codeChapter ? codeChapter.replace(/_/g, " ") : "Select chapter"}
-                      </span>
-                      <CaretDownIcon className="size-4 shrink-0" weight="bold" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="p-1.5"
-                    align="start"
-                    side="top"
-                    sideOffset={6}
-                    style={{ width: "var(--radix-popover-trigger-width)" }}
-                  >
-                    <div
-                      className="flex max-h-52 flex-col gap-0.5 overflow-y-auto overscroll-contain"
-                      style={{ touchAction: "pan-y" }}
-                    >
-                      {codeLanguage && codeManifest[codeLanguage]?.chapters.map((chap) => (
-                        <button
-                          type="button"
-                          key={chap}
-                          onClick={() => { onCodeChapterChange(chap); setChapterPickerOpen(false); }}
-                          className={renderDropdownOptionClass(codeChapter === chap)}
-                        >
-                          {chap.replace(/_/g, " ")}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                      <div className="flex flex-col gap-0.5 rounded-xl border border-border bg-zinc-100 dark:bg-zinc-800 p-1.5">
+                        {codeManifest[codeLanguage].chapters.map((chap) => (
+                          <button
+                            type="button"
+                            key={chap}
+                            onClick={() => { onCodeChapterChange(chap); setChapterPickerOpen(false); }}
+                            className={renderDropdownOptionClass(codeChapter === chap)}
+                          >
+                            {chap.replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-2">
