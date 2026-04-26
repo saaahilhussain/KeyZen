@@ -643,13 +643,10 @@ export function useTypingTest({
       }
 
       if (e.key.length === 1) {
-        // ── Auto-pair: in code mode, when user types an opener and the very next
-        // expected char in the word is the matching closer, skip over the closer
-        // automatically (it's already there — user just needs to type through it).
         const PAIR_MAP: Record<string, string> = {
           "(": ")", "{": "}", "[": "]", '"': '"', "'": "'", "`": "`",
         };
-        if (autoPair && mode === "code" && PAIR_MAP[e.key]) {
+        if (autoPair && isCodeLikeMode && PAIR_MAP[e.key]) {
           const closer = PAIR_MAP[e.key];
           const charIndex = typed.length;
          
